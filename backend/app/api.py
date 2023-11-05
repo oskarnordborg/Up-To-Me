@@ -3,7 +3,11 @@ from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 
-origins = ["http://localhost:3000", "localhost:3000"]
+origins = [
+    "https://up-to-me.onrender.com",
+    "http://localhost:3000",
+    "localhost:3000",
+]
 
 
 app.add_middleware(
