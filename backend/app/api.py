@@ -1,14 +1,17 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from . import card
+
 app = FastAPI()
+
+app.include_router(card.router)
 
 origins = [
     "https://up-to-me.onrender.com",
     "http://localhost:3000",
     "localhost:3000",
 ]
-
 
 app.add_middleware(
     CORSMiddleware,
@@ -21,19 +24,4 @@ app.add_middleware(
 
 @app.get("/", tags=["root"])
 async def read_root() -> dict:
-    return {
-        "cards": [
-            {
-                "name": "Card1",
-                "description": "Do this and that!",
-            },
-            {
-                "name": "Card2",
-                "description": "Do another thing",
-            },
-            {
-                "name": "No way",
-                "description": "I will do anything for love, but I won't do that",
-            },
-        ]
-    }
+    return {"message": "Testing root"}
