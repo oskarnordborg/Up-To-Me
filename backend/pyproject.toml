@@ -1,0 +1,53 @@
+[tool.poetry]
+name = "adventofcode"
+version = "0.1.0"
+description = ""
+authors = ["Oskar Nordborg <47498943+oskarnordborg@users.noreply.github.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+autopep8 = '>=1'
+pytest = '>=6.2.3'
+flake8 = '^3.7'
+black = '^22.1.0'
+isort = '^5.0.0'
+fastapi = "^0.104.1"
+uvicorn = "^0.24.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+minversion = '6.0'
+norecursedirs = [
+    'venv',
+    '.venv',
+    'build',
+    'dist',
+    '.plugins',
+    'frontend',
+    '.env',
+    '.git',
+    '.github',
+    '.lime',
+    '.vscode'
+]
+faulthandler_timeout = 300
+
+[tool.black]
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.git
+  | \.venv
+  | frontend
+  | poetry.lock
+)/
+'''
+
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
