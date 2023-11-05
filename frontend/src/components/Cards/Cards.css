@@ -1,0 +1,66 @@
+.Cards-main {
+  min-height: 100vh;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.carousel-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 20px;
+  height: 90%; /* Set the height to 90% of the window */
+  position: relative;
+}
+
+.carousel-button {
+  background-color: #333;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  cursor: pointer;
+  border-radius: 5px;
+  font-size: 16px;
+  outline: none;
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.carousel-button.prev {
+  left: 10px;
+}
+
+.carousel-button.next {
+  right: 10px;
+}
+
+.carousel-slide {
+  background-color: #ededed;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 20px;
+  height: 80vh; /* Set the height to 90% of the window */
+  width: 90%; /* Set the width to 90% of the window */
+  text-align: center;
+  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.carousel-slide h3 {
+  font-size: 24px;
+  margin: 0;
+  color: #333;
+}
+
+.carousel-slide p {
+  font-size: 16px;
+  color: #666;
+}
+
+.carousel-slide img {
+  max-width: 100%;
+  max-height: 400px;
+}

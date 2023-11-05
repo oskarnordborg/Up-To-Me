@@ -1,0 +1,103 @@
+/* Style the navigation menu */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #333;
+  color: #fff;
+  padding: 10px 20px;
+  position: relative;
+  z-index: 1; /* Ensure the menu is displayed above other content */
+}
+
+/* Style the menu toggle (hamburger icon) for mobile */
+.menu-toggle {
+  display: none;
+  flex-direction: column;
+  cursor: pointer;
+  z-index: 2; /* Make sure the menu toggle is above the menu */
+}
+
+.bar {
+  background-color: #fff;
+  width: 30px;
+  height: 3px;
+  margin: 3px 0;
+  border-radius: 2px;
+}
+
+/* Style the navigation links */
+.nav-links {
+  list-style: none;
+  display: flex;
+  margin: 0;
+  padding: 0;
+  position: absolute;
+  top: 60px;
+  right: 0;
+  left: 0;
+  background-color: #333;
+  display: none;
+  flex-direction: column;
+  z-index: 2; /* Ensure the menu is displayed above other content */
+}
+
+.nav-links.active {
+  display: flex;
+}
+
+.nav-links li {
+  margin: 15px 0;
+}
+
+.nav-links a {
+  text-decoration: none;
+  color: #fff;
+}
+
+/* Media query for mobile responsiveness */
+@media screen and (max-width: 768px) {
+  .menu-toggle {
+    display: flex;
+  }
+}
+
+.App {
+  text-align: center;
+  height: 100%;
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
