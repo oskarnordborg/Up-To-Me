@@ -46,7 +46,7 @@ class App extends Component {
             </ul>
           </nav>
 
-          <Routes>
+          <Routes basename="/">
             <Route exact path="/" element={<Cards />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/login" element={<LoginPage />} />

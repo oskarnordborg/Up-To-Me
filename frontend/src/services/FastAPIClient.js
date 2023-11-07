@@ -8,7 +8,7 @@ export default class FastApiClient {
             lastName: lastName,
             deviceName: user
         };
-        console.log(JSON.stringify(request))
+
         const response = await fetch(`${BACKEND_URL}/passwordless/register`, {
             method: 'post',
             body: JSON.stringify(request),
@@ -20,7 +20,7 @@ export default class FastApiClient {
 
         if (!response.ok) {
           const problemDetails = await response.json();
-          console.log(problemDetails.detail)
+
             if (problemDetails && problemDetails.detail) {
                 throw new Error(`${problemDetails.detail}`);
             } else {

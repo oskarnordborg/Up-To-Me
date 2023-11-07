@@ -36,7 +36,6 @@ export default function RegisterPage() {
 
     // If an error previously happened, 'registerToken' will be null, so you don't want to register a token.
     if (registerToken) {
-      console.log(process.env);
       const p = new Passwordless.Client({
         apiKey: process.env.REACT_APP_PASSWORDLESS_API_KEY,
         apiUrl: process.env.REACT_APP_PASSWORDLESS_API_URL,

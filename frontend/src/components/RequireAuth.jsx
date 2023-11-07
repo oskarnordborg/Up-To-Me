@@ -27,8 +27,7 @@ const RequireAuth = ({ allowedRoles }) => {
   if (allowedRoles) {
     if (jwt) {
       const decodedToken = jwtDecode(jwt);
-      console.log("decodedToken");
-      console.log(decodedToken);
+
       isAllowed = hasMatchingRole(allowedRoles, decodedToken.roles);
     } else {
       isAllowed = false;
