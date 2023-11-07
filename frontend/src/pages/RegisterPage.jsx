@@ -1,23 +1,18 @@
 import { useEffect, useRef, useState } from "react";
 import * as Passwordless from "@passwordlessdev/passwordless-client";
-import {
-  PASSWORDLESS_API_KEY,
-  PASSWORDLESS_API_URL,
-} from "../configuration/PasswordlessOptions";
+
 import { ToastContainer, toast } from "react-toastify";
-import YourBackendClient from "../services/YourBackendClient";
+import FastAPIClient from "../services/FastAPIClient";
 import "./RegisterPage.css";
 
 export default function RegisterPage() {
   const userRef = useRef();
   const firstNameRef = useRef();
   const lastNameRef = useRef();
-  const aliasRef = useRef();
   const errRef = useRef();
-  const [user, setUser] = useState("");
+  const [email, setEmail] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [alias, setAlias] = useState("");
   const [errMsg, setErrMsg] = useState("");
 
   useEffect(() => {
@@ -26,18 +21,13 @@ export default function RegisterPage() {
 
   useEffect(() => {
     setErrMsg("");
-  }, [user]);
+  }, [email]);
 
   const handleSubmit = async (e) => {
     let registerToken = null;
     try {
-      const yourBackendClient = new YourBackendClient();
-      registerToken = await yourBackendClient.register(
-        user,
-        firstName,
-        lastName,
-        alias
-      );
+      const fastAPIClient = new FastAPIClient();
+      registerToken = await fastAPIClient.register(email, firstName, lastName);
     } catch (error) {
       toast(error.message, {
         className: "toast-error",
@@ -46,14 +36,15 @@ export default function RegisterPage() {
 
     // If an error previously happened, 'registerToken' will be null, so you don't want to register a token.
     if (registerToken) {
+      console.log(process.env);
       const p = new Passwordless.Client({
-        apiKey: PASSWORDLESS_API_KEY,
-        apiUrl: PASSWORDLESS_API_URL,
+        apiKey: process.env.REACT_APP_PASSWORDLESS_API_KEY,
+        apiUrl: process.env.REACT_APP_PASSWORDLESS_API_URL,
       });
-      const finalResponse = await p.register(registerToken.token, alias);
+      const finalResponse = await p.register(registerToken.token, email);
 
       if (finalResponse) {
-        toast(`Registered '${alias}'!`);
+        toast(`Registered '${email}'!`);
       }
     }
   };
@@ -76,8 +67,8 @@ export default function RegisterPage() {
             id="email"
             ref={userRef}
             autoComplete="off"
-            onChange={(e) => setUser(e.target.value)}
-            value={user}
+            onChange={(e) => setEmail(e.target.value)}
+            value={email}
             required
             aria-describedby="uidnote"
             className="input-field"
@@ -106,20 +97,6 @@ export default function RegisterPage() {
             autoComplete="off"
             onChange={(e) => setLastName(e.target.value)}
             value={lastName}
-            required
-            aria-describedby="uidnote"
-            className="input-field"
-          />
-        </div>
-        <div className="input-container">
-          <label htmlFor="alias">Alias</label>
-          <input
-            type="text"
-            id="alias"
-            ref={aliasRef}
-            autoComplete="off"
-            onChange={(e) => setAlias(e.target.value)}
-            value={alias}
             required
             aria-describedby="uidnote"
             className="input-field"

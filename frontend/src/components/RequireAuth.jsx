@@ -1,44 +1,47 @@
 import { useLocation, Navigate, Outlet } from "react-router-dom";
-import useAuth from "../hooks/useAuth";
-import { jwtDecode } from 'jwt-decode';
+// import useAuth from "../hooks/useAuth";
+import { useContext } from "react";
+import AuthContext from "../context/AuthProvider";
+import { jwtDecode } from "jwt-decode";
 
 function hasMatchingRole(allowedRoles, userRoles) {
-    if (!allowedRoles || allowedRoles.length === 0) {
-        return true;
-    }
+  if (!allowedRoles || allowedRoles.length === 0) {
+    return true;
+  }
 
-    for (let i = 0; i < allowedRoles.length; i++) {
-        if (userRoles.indexOf(allowedRoles[i]) !== -1) {
-            return true;
-        }
+  for (let i = 0; i < allowedRoles.length; i++) {
+    if (userRoles.indexOf(allowedRoles[i]) !== -1) {
+      return true;
     }
+  }
 
-    return false;
+  return false;
 }
-
 
 const RequireAuth = ({ allowedRoles }) => {
-    const { auth } = useAuth();
-    const location = useLocation();
+  const { auth } = useContext(AuthContext);
+  const location = useLocation();
 
-    let isAllowed = true;
-
-    if (allowedRoles) {
-        if (auth?.verifiedToken?.jwt) {
-            const decodedToken = jwtDecode(auth.verifiedToken.jwt);
-            isAllowed = hasMatchingRole(allowedRoles, decodedToken.role);
-        } else {
-            isAllowed = false;
-        }
+  let isAllowed = true;
+  const jwt = localStorage.getItem("jwt");
+  if (allowedRoles) {
+    if (jwt) {
+      const decodedToken = jwtDecode(jwt);
+      console.log("decodedToken");
+      console.log(decodedToken);
+      isAllowed = hasMatchingRole(allowedRoles, decodedToken.roles);
+    } else {
+      isAllowed = false;
     }
+  }
 
-    return (
-        isAllowed
-            ? <Outlet />
-            : auth?.verifiedToken
-                ? <Navigate to="/unauthorized" state={{ from: location }} replace />
-                : <Navigate to="/login" state={{ from: location }} replace />
-    );
-}
+  return isAllowed ? (
+    <Outlet />
+  ) : auth?.verifiedToken ? (
+    <Navigate to="/unauthorized" state={{ from: location }} replace />
+  ) : (
+    <Navigate to="/login" state={{ from: location }} replace />
+  );
+};
 
 export default RequireAuth;

@@ -9,7 +9,6 @@ export default function Cards() {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const fetchCards = async () => {
-    console.log(process.env);
     try {
       const response = await fetch(apiUrl + "/card/");
       if (response.ok) {
@@ -40,9 +39,12 @@ export default function Cards() {
     onSwipedRight: () => goToPrevSlide(),
   });
 
-  // Add conditional rendering to handle the case when cards is empty or undefined
   if (cards.length === 0) {
-    return <div>Loading...</div>;
+    return (
+      <div className="spinner-container">
+        <div className="spinner"></div>
+      </div>
+    );
   }
 
   return (

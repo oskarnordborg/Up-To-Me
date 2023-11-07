@@ -1,15 +1,15 @@
-import {BACKEND_URL} from "../configuration/PasswordlessOptions";
+const BACKEND_URL = process.env.REACT_APP_API_URL;
 
-export default class YourBackendClient {
-    async register(user, firstName, lastName, deviceName) {
+export default class FastApiClient {
+    async register(user, firstName, lastName) {
         const request = {
             username: user,
             firstName: firstName,
             lastName: lastName,
-            deviceName: deviceName
+            deviceName: user
         };
-
-        const response = await fetch(`${BACKEND_URL}/signup`, {
+        console.log(JSON.stringify(request))
+        const response = await fetch(`${BACKEND_URL}/passwordless/register`, {
             method: 'post',
             body: JSON.stringify(request),
             headers: {
@@ -19,9 +19,10 @@ export default class YourBackendClient {
         });
 
         if (!response.ok) {
-            const problemDetails = await response.json();
+          const problemDetails = await response.json();
+          console.log(problemDetails.detail)
             if (problemDetails && problemDetails.detail) {
-                throw new Error(problemDetails.detail);
+                throw new Error(`${problemDetails.detail}`);
             } else {
                 throw new Error(`An unknown error prevented us from obtaining a registration token.`);
             }
@@ -31,6 +32,8 @@ export default class YourBackendClient {
     }
 
     async signIn(token) {
-        return await fetch(`${BACKEND_URL}/signin?token=${token}`).then(r => r.json());
+        return await fetch(`${BACKEND_URL}/passwordless/login?token=${token}`, {
+            method: 'post'
+        }).then(r => r.json());
     }
 }

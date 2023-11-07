@@ -36,8 +36,3 @@ class PasswordlessApiBlueprint(PasswordlessBlueprint):
             self.api_config.secret, self.api_config.url
         )
         self.api_client = PasswordlessClientBuilder(passwordless_options).build()
-
-
-# Create a FastAPI dependency to initialize the PasswordlessApiBlueprint
-def get_passwordless_api(app: FastAPI = Depends()):
-    return PasswordlessApiBlueprint(app)

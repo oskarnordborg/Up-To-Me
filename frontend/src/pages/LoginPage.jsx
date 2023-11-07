@@ -1,11 +1,7 @@
 import { useContext, useRef, useState } from "react";
 import authContext from "../context/AuthProvider";
 import * as Passwordless from "@passwordlessdev/passwordless-client";
-import YourBackendClient from "../services/YourBackendClient";
-import {
-  PASSWORDLESS_API_KEY,
-  PASSWORDLESS_API_URL,
-} from "../configuration/PasswordlessOptions";
+import FastAPIClient from "../services/FastAPIClient";
 import "./LoginPage.css";
 
 export default function LoginPage() {
@@ -17,16 +13,18 @@ export default function LoginPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const passwordless = new Passwordless.Client({
-      apiUrl: PASSWORDLESS_API_URL,
-      apiKey: PASSWORDLESS_API_KEY,
+      apiUrl: process.env.REACT_APP_PASSWORDLESS_API_URL,
+      apiKey: process.env.REACT_APP_PASSWORDLESS_API_KEY,
     });
-    const yourBackendClient = new YourBackendClient();
+    const fastAPIClient = new FastAPIClient();
     const token = await passwordless.signinWithDiscoverable();
     if (!token) {
       return;
     }
-    const verifiedToken = await yourBackendClient.signIn(token.token);
+    const verifiedToken = await fastAPIClient.signIn(token.token);
+
     localStorage.setItem("jwt", verifiedToken.jwt);
+
     setAuth({ verifiedToken });
     setSuccess(true);
   };

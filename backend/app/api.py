@@ -1,3 +1,6 @@
+import uuid
+
+from app import jwt_helper
 from fastapi import APIRouter, Body, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from passwordless import (
@@ -7,23 +10,22 @@ from passwordless import (
     DeleteUserSchema,
     PasswordlessError,
     RegisteredTokenSchema,
+    RegisterToken,
     RegisterTokenSchema,
     SetAliasSchema,
     UpdateAppsFeatureSchema,
     UserSummarySchema,
+    VerifiedUser,
     VerifiedUserSchema,
+    VerifySignIn,
     VerifySignInSchema,
 )
+from pydantic import BaseModel
 
 from . import card
 from .passwordless_login.passwordless_bp import PasswordlessApiBlueprint
 
 app = FastAPI()
-
-app.include_router(card.router)
-
-api_bp = PasswordlessApiBlueprint(app)
-
 origins = [
     "https://up-to-me.onrender.com",
     "http://localhost:3000",
@@ -38,6 +40,20 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(card.router)
+
+api_bp = PasswordlessApiBlueprint(app)
+
+
+class RegisterInput(BaseModel):
+    username: str
+    firstName: str
+    lastName: str
+
+
+class LoginInput(BaseModel):
+    token: str
+
 
 @app.get("/", tags=["root"])
 async def read_root() -> dict:
@@ -45,17 +61,22 @@ async def read_root() -> dict:
 
 
 @app.post("/passwordless/login")
-async def login(request_data):
+async def login(token: str):
     try:
-        response_data = api_bp.api_client.sign_in(request_data.dict())
-        return response_data
+        verify_sign_in = VerifySignIn(token)
+        response_data: VerifiedUser = api_bp.api_client.sign_in(verify_sign_in)
+        return {"jwt": jwt_helper.create_jwt(response_data)}
     except PasswordlessError as e:
         raise HTTPException(status_code=400, detail=e.problem_details)
 
 
 @app.post("/passwordless/register")
-async def register(request_data):
-    response_data = api_bp.api_client.register_token(request_data.dict())
+async def register(request_data: RegisterInput):
+    register_token = RegisterToken(
+        user_id=str(uuid.uuid4()),
+        username=request_data.username,
+    )
+    response_data = api_bp.api_client.register_token(register_token)
     return response_data
 
 
