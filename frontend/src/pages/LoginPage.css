@@ -1,0 +1,59 @@
+/* Define your CSS styles here */
+
+/* Success Message Styles */
+.success-heading {
+  font-size: 24px;
+  color: green;
+}
+
+.success-paragraph {
+  font-size: 16px;
+  color: #333;
+}
+
+/* Error Message Styles */
+.error-message {
+  font-size: 16px;
+  color: red;
+}
+
+.visible {
+  display: block;
+}
+
+.hidden {
+  display: none;
+}
+
+/* Sign In Styles */
+.sign-in-heading {
+  font-size: 24px;
+  color: #d9d9d9;
+}
+
+.sign-in-button {
+  background-color: #0077ff;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.need-register {
+  color: #d9d9d9;
+}
+
+/* Sign Up Link Styles */
+.line {
+  text-align: center;
+}
+
+.signup-link {
+  color: #0077ff;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+/* Add more styles as needed */

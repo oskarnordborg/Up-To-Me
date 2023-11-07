@@ -1,0 +1,68 @@
+/* Registration Section Styles */
+.registration-section {
+  text-align: center;
+  padding: 20px;
+}
+
+/* Registration Heading Styles */
+.registration-heading {
+  font-size: 24px;
+  color: #e0e0e0;
+}
+
+/* Input Container Styles */
+.input-container {
+  margin: 10px 0;
+}
+
+/* Label Styles */
+label {
+  font-weight: bold;
+  margin-right: 10px;
+}
+
+/* Input Field Styles */
+.input-field {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 16px;
+  width: 90%;
+}
+
+/* Error Message Styles */
+.error-message {
+  font-size: 16px;
+  color: red;
+  margin: 10px 0;
+}
+
+.visible {
+  display: block;
+}
+
+.hidden {
+  display: none;
+}
+
+/* Registration Button Styles */
+.registration-button {
+  background-color: #0077ff;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+/* Sign Up Link Styles */
+.line {
+  text-align: center;
+}
+
+.signup-link {
+  color: #0077ff;
+  text-decoration: none;
+  font-weight: bold;
+}
