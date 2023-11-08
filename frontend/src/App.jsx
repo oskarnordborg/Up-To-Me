@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { Route, Routes } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import UserPage from "./pages/UserPage";
 import AdminPage from "./pages/AdminPage";
 import Cards from "./components/Cards/Cards";
@@ -22,7 +22,7 @@ function toggleMenu() {
 class App extends Component {
   render() {
     return (
-      <div>
+      <Router>
         <div className="App">
           <nav className="navbar">
             <div className="menu-toggle" onClick={toggleMenu}>
@@ -45,8 +45,7 @@ class App extends Component {
               </li>
             </ul>
           </nav>
-
-          <Routes basename="/">
+          <Routes>
             <Route exact path="/" element={<Cards />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/login" element={<LoginPage />} />
@@ -61,7 +60,7 @@ class App extends Component {
             </Route>
           </Routes>
         </div>
-      </div>
+      </Router>
     );
   }
 }
