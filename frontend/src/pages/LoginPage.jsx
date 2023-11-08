@@ -1,14 +1,22 @@
-import { useContext, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import authContext from "../context/AuthProvider";
 import * as Passwordless from "@passwordlessdev/passwordless-client";
 import FastAPIClient from "../services/FastAPIClient";
 import "./LoginPage.css";
 
+import { ToastContainer, toast } from "react-toastify";
+
 export default function LoginPage() {
+  const userRef = useRef();
   const errRef = useRef();
   const [errMsg, setErrMsg] = useState("");
   const [success, setSuccess] = useState(false);
   const { setAuth } = useContext(authContext);
+  const [email, setEmail] = useState("");
+
+  useEffect(() => {
+    userRef.current.focus();
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -17,11 +25,21 @@ export default function LoginPage() {
       apiKey: process.env.REACT_APP_PASSWORDLESS_API_KEY,
     });
     const fastAPIClient = new FastAPIClient();
-    const token = await passwordless.signinWithDiscoverable();
-    if (!token) {
+    console.log(email);
+    let tokenResp = undefined;
+    try {
+      tokenResp = await passwordless.signinWithDiscoverable();
+    } catch (error) {
+      toast(error.message, {
+        className: "toast-error",
+      });
+    }
+
+    if (!tokenResp?.token) {
       return;
     }
-    const verifiedToken = await fastAPIClient.signIn(token.token);
+
+    const verifiedToken = await fastAPIClient.signIn(tokenResp.token);
 
     localStorage.setItem("jwt", verifiedToken.jwt);
 
@@ -48,6 +66,20 @@ export default function LoginPage() {
             {errMsg}
           </p>
           <h1 className="sign-in-heading">Sign In</h1>
+          <div className="input-container">
+            <label htmlFor="email">Email</label>
+            <input
+              type="text"
+              id="email"
+              ref={userRef}
+              autoComplete="off"
+              onChange={(e) => setEmail(e.target.value)}
+              value={email}
+              required
+              aria-describedby="uidnote"
+              className="input-field"
+            />
+          </div>
           <button className="sign-in-button" onClick={handleSubmit}>
             Sign In
           </button>
@@ -60,6 +92,7 @@ export default function LoginPage() {
               </a>
             </span>
           </p>
+          <ToastContainer />
         </section>
       )}
     </>
