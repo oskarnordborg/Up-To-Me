@@ -18,7 +18,7 @@ function hasMatchingRole(allowedRoles, userRoles) {
   return false;
 }
 
-const RequireAuth = ({ allowedRoles }) => {
+const RequireAuth = ({ allowedRoles, unauthorizedComponent = null }) => {
   const { auth } = useContext(AuthContext);
   const location = useLocation();
 
@@ -39,7 +39,9 @@ const RequireAuth = ({ allowedRoles }) => {
   ) : auth?.verifiedToken ? (
     <Navigate to="/unauthorized" state={{ from: location }} replace />
   ) : (
-    <Navigate to="/login" state={{ from: location }} replace />
+    unauthorizedComponent || (
+      <Navigate to="/login" state={{ from: location }} replace />
+    )
   );
 };
 

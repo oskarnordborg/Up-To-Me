@@ -1,6 +1,6 @@
 import uuid
 
-from app import jwt_helper
+from app.helpers import jwt_helper
 from fastapi import APIRouter, Body, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from passwordless import (

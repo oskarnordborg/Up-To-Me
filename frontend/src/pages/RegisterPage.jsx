@@ -104,6 +104,7 @@ export default function RegisterPage() {
         <button onClick={handleSubmit} className="registration-button">
           Register
         </button>
+        <br />
         <a className="signup-link" href="/login">
           Already registered?
         </a>

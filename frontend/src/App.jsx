@@ -35,9 +35,6 @@ class App extends Component {
                 <a href="/">Home</a>
               </li>
               <li>
-                <a href="/login">Login</a>
-              </li>
-              <li>
                 <a href="/user">User</a>
               </li>
               <li>
