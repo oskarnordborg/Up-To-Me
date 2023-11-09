@@ -1,2 +1,2 @@
-def create_query(table, fields):
-    return f"INSERT INTO {table}({fields.keys()}) VALUES ({fields.values()})"
+def create_query(cursor, table, fields):
+    return cursor.execute(f"INSERT INTO {table}({fields.keys()}) VALUES ({fields.values()})")

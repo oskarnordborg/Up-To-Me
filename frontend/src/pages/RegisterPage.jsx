@@ -4,6 +4,9 @@ import * as Passwordless from "@passwordlessdev/passwordless-client";
 import { ToastContainer, toast } from "react-toastify";
 import FastAPIClient from "../services/FastAPIClient";
 import "./RegisterPage.css";
+import { useNavigate } from "react-router-dom";
+
+const apiUrl = process.env.REACT_APP_API_URL;
 
 export default function RegisterPage() {
   const userRef = useRef();
@@ -14,6 +17,8 @@ export default function RegisterPage() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [errMsg, setErrMsg] = useState("");
+  const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     userRef.current.focus();
@@ -23,27 +28,70 @@ export default function RegisterPage() {
     setErrMsg("");
   }, [email]);
 
+  const createAppUser = async () => {
+    try {
+      const response = await fetch(apiUrl + "/user/", {
+        method: "post",
+        body: JSON.stringify({
+          email: email,
+          firstName: firstName,
+          lastName: lastName,
+        }),
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+      });
+      if (response.ok) {
+      } else {
+        toast("Failed to create app user", {
+          type: "error",
+          autoClose: 1000,
+          hideProgressBar: true,
+        });
+      }
+    } catch (error) {
+      toast("Failed to create app user", {
+        type: "error",
+        autoClose: 1000,
+        hideProgressBar: true,
+      });
+    }
+  };
+
   const handleSubmit = async (e) => {
     let registerToken = null;
     try {
       const fastAPIClient = new FastAPIClient();
-      registerToken = await fastAPIClient.register(email, firstName, lastName);
+      registerToken = await fastAPIClient.register(email, firstName, lastName, {
+        timestamp: Date.now(),
+      });
     } catch (error) {
       toast(error.message, {
-        className: "toast-error",
+        className: "error",
       });
     }
 
     // If an error previously happened, 'registerToken' will be null, so you don't want to register a token.
     if (registerToken) {
-      const p = new Passwordless.Client({
+      const pwlClient = new Passwordless.Client({
         apiKey: process.env.REACT_APP_PASSWORDLESS_API_KEY,
         apiUrl: process.env.REACT_APP_PASSWORDLESS_API_URL,
       });
-      const finalResponse = await p.register(registerToken.token, email);
-
-      if (finalResponse) {
-        toast(`Registered '${email}'!`);
+      const finalResponse = await pwlClient.register(
+        registerToken.token,
+        email
+      );
+      if (finalResponse.ok) {
+        toast(`Registered '${email}'!`, {
+          autoClose: 1000,
+        });
+        createAppUser();
+        navigate("/");
+      } else {
+        toast(`Something went wrong ${finalResponse.error.title || ""}`, {
+          type: "error",
+        });
       }
     }
   };

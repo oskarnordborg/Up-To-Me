@@ -21,8 +21,9 @@ function hasMatchingRole(allowedRoles, userRoles) {
 const RequireAuth = ({ allowedRoles, unauthorizedComponent = null }) => {
   const { auth } = useContext(AuthContext);
   const location = useLocation();
-
+  console.log(auth);
   let isAllowed = true;
+  const decodedToken = undefined;
   const jwt = localStorage.getItem("jwt");
   if (allowedRoles) {
     if (jwt) {
@@ -36,7 +37,7 @@ const RequireAuth = ({ allowedRoles, unauthorizedComponent = null }) => {
 
   return isAllowed ? (
     <Outlet />
-  ) : auth?.verifiedToken ? (
+  ) : decodedToken ? (
     <Navigate to="/unauthorized" state={{ from: location }} replace />
   ) : (
     unauthorizedComponent || (

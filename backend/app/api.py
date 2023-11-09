@@ -22,7 +22,7 @@ from passwordless import (
 )
 from pydantic import BaseModel
 
-from . import card
+from . import appuser, card, deck
 from .passwordless_login.passwordless_bp import PasswordlessApiBlueprint
 
 app = FastAPI()
@@ -41,6 +41,8 @@ app.add_middleware(
 )
 
 app.include_router(card.router)
+app.include_router(deck.router)
+app.include_router(appuser.router)
 
 api_bp = PasswordlessApiBlueprint(app)
 
@@ -113,7 +115,6 @@ async def delete_credentials(request_data):
 @app.get("/passwordless/users")
 async def get_users():
     response_data = api_bp.api_client.get_users()
-    print(response_data)
     return {"users": response_data}
 
 

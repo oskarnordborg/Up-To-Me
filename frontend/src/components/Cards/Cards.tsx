@@ -11,6 +11,9 @@ export default function Cards() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [startY, setStartY] = useState(null);
 
   const fetchCards = async () => {
     try {
@@ -30,6 +33,12 @@ export default function Cards() {
     fetchCards();
   }, []);
 
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await fetchCards();
+    setRefreshing(false);
+  };
+
   const goToNextSlide = () => {
     if (currentIndex + 1 < cards.length + 1) {
       setCurrentIndex(currentIndex + 1);
@@ -45,10 +54,35 @@ export default function Cards() {
   const handlers = useSwipeable({
     onSwipedLeft: () => goToNextSlide(),
     onSwipedRight: () => goToPrevSlide(),
+    onSwipedDown: (event: any) => {
+      if (startY === null || event.event.touches[0].clientY - startY > 0) {
+        handleRefresh();
+      }
+    },
+    onSwiping: (event: any) => {
+      if (startY === null) {
+        setStartY(event.event.touches[0].clientY);
+      }
+    },
+    onSwiped: () => {
+      setStartY(null);
+    },
   });
 
   const handleAddCardClick = async (e: any) => {
     e.preventDefault();
+    if (isLoading) {
+      return;
+    }
+    if (!title.trim() || !description.trim()) {
+      toast("Please enter both title and description.", {
+        type: "error",
+        autoClose: 2000,
+        hideProgressBar: true,
+      });
+      return;
+    }
+    setIsLoading(true);
     try {
       const response = await fetch(apiUrl + "/card/", {
         method: "post",
@@ -59,9 +93,12 @@ export default function Cards() {
         },
       });
       if (response.ok) {
-        toast("Card created", {
+        toast("Card created, refreshing", {
           className: "toast-success",
+          autoClose: 1000,
+          hideProgressBar: true,
         });
+        setIsLoading(false);
         await fetchCards();
         setTitle("");
         setDescription("");
@@ -71,33 +108,40 @@ export default function Cards() {
     } catch (error) {
       console.error("An error occurred while fetching data:", error);
     }
+    setIsLoading(false);
   };
   const handleDeleteCardClick = async (e: any) => {
     e.preventDefault();
-    toast("Card delete not implemented", {
-      className: "toast-warning",
-    });
-    // try {
-    //   const response = await fetch(apiUrl + "/card/", {
-    //     method: "delete",
-    //     headers: {
-    //       Accept: "application/json",
-    //       "Content-Type": "application/json",
-    //     },
-    //   });
-    //   if (response.ok) {
-    //     toast("Card created", {
-    //       className: "toast-success",
-    //     });
-    //     await fetchCards();
-    //     setTitle("");
-    //     setDescription("");
-    //   } else {
-    //     console.error("Failed to fetch cards data");
-    //   }
-    // } catch (error) {
-    //   console.error("An error occurred while fetching data:", error);
-    // }
+    if (isLoading) {
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const response = await fetch(
+        apiUrl + `/card/?idcard=${cards[currentIndex].idcard}`,
+        {
+          method: "delete",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      if (response.ok) {
+        toast("Card deleted, refreshing", {
+          className: "toast-success",
+          autoClose: 1000,
+          hideProgressBar: true,
+        });
+        setIsLoading(false);
+        await fetchCards();
+      } else {
+        console.error("Failed to fetch cards data");
+      }
+    } catch (error) {
+      console.error("An error occurred while fetching data:", error);
+    }
+    setIsLoading(false);
   };
 
   if (cards.length === 0) {
@@ -118,15 +162,26 @@ export default function Cards() {
           <div className="carousel-slide">
             <h3>{cards[currentIndex]?.title}</h3>
             <p>{cards[currentIndex]?.description}</p>
-            <button className="delete-button" onClick={handleDeleteCardClick}>
-              Delete Card
+            <button
+              className={`delete-button ${isLoading ? "loading" : ""}`}
+              onClick={handleDeleteCardClick}
+            >
+              {isLoading ? (
+                <>
+                  <div className="small spinner"></div> Deleting Card...
+                </>
+              ) : (
+                "Delete Card"
+              )}
             </button>
           </div>
         ) : (
           <div className="carousel-slide">
             <h3>New Card</h3>
             <div className="input-container">
-              <label htmlFor="title">Title</label>
+              <label className="new-card-label" htmlFor="title">
+                Title
+              </label>
               <input
                 type="text"
                 id="title"
@@ -139,7 +194,9 @@ export default function Cards() {
               />
             </div>
             <div className="input-container">
-              <label htmlFor="description">Description</label>
+              <label className="new-card-label" htmlFor="description">
+                Description
+              </label>
               <input
                 type="text"
                 id="description"
@@ -151,8 +208,18 @@ export default function Cards() {
                 className="input-field"
               />
             </div>
-            <button className="create-button" onClick={handleAddCardClick}>
-              Create
+            <button
+              className={`create-button ${isLoading ? "loading" : ""}`}
+              onClick={handleAddCardClick}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <>
+                  <div className="small spinner"></div> Creating...
+                </>
+              ) : (
+                "Create"
+              )}
             </button>
           </div>
         )}

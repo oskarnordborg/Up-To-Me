@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import UserPage from "./pages/UserPage";
 import AdminPage from "./pages/AdminPage";
 import Cards from "./components/Cards/Cards";
+import Decks from "./components/Decks/Decks";
 import Layout from "./components/Layout";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
@@ -38,12 +39,16 @@ class App extends Component {
                 <a href="/user">User</a>
               </li>
               <li>
+                <a href="/cards">Cards</a>
+              </li>
+              <li>
                 <a href="/admin">Admin</a>
               </li>
             </ul>
           </nav>
           <Routes>
-            <Route exact path="/" element={<Cards />} />
+            <Route exact path="/" element={<Decks />} />
+            <Route exact path="/cards" element={<Cards />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="unauthorized" element={<UnauthorizedPage />} />

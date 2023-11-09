@@ -3,6 +3,7 @@ import authContext from "../context/AuthProvider";
 import * as Passwordless from "@passwordlessdev/passwordless-client";
 import FastAPIClient from "../services/FastAPIClient";
 import "./LoginPage.css";
+import { useNavigate } from "react-router-dom";
 
 import { ToastContainer, toast } from "react-toastify";
 
@@ -13,6 +14,7 @@ export default function LoginPage() {
   const [success, setSuccess] = useState(false);
   const { setAuth } = useContext(authContext);
   const [email, setEmail] = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
     userRef.current.focus();
@@ -25,13 +27,13 @@ export default function LoginPage() {
       apiKey: process.env.REACT_APP_PASSWORDLESS_API_KEY,
     });
     const fastAPIClient = new FastAPIClient();
-    console.log(email);
+
     let tokenResp = undefined;
     try {
       tokenResp = await passwordless.signinWithDiscoverable();
     } catch (error) {
       toast(error.message, {
-        className: "toast-error",
+        type: "error",
       });
     }
 
@@ -45,6 +47,7 @@ export default function LoginPage() {
 
     setAuth({ verifiedToken });
     setSuccess(true);
+    navigate("/");
   };
 
   return (
@@ -69,7 +72,7 @@ export default function LoginPage() {
           <div className="input-container">
             <label htmlFor="email">Email</label>
             <input
-              type="text"
+              type="email"
               id="email"
               ref={userRef}
               autoComplete="off"

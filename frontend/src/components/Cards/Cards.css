@@ -81,6 +81,14 @@
   animation: spin 1s linear infinite;
 }
 
+.spinner.small {
+  border-top: 4px solid #cfcfcf;
+  margin-right: 10px;
+  width: 10px;
+  height: 10px;
+  float: left;
+}
+
 @keyframes spin {
   0% {
     transform: rotate(0deg);
@@ -91,6 +99,9 @@
 }
 
 .input-container {
+  color: black;
+}
+.new-card-label {
   color: black;
 }
 
