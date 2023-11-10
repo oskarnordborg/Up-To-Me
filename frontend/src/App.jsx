@@ -33,7 +33,7 @@ class App extends Component {
             </div>
             <ul className="nav-links">
               <li>
-                <a href="/">Home</a>
+                <a href="/">Decks</a>
               </li>
               <li>
                 <a href="/user">User</a>
@@ -48,7 +48,7 @@ class App extends Component {
           </nav>
           <Routes>
             <Route exact path="/" element={<Decks />} />
-            <Route exact path="/cards" element={<Cards />} />
+            <Route exact path="/cards/:iddeck?" element={<Cards />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="unauthorized" element={<UnauthorizedPage />} />

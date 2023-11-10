@@ -1,7 +1,4 @@
 import { useLocation, Navigate, Outlet } from "react-router-dom";
-// import useAuth from "../hooks/useAuth";
-import { useContext } from "react";
-import AuthContext from "../context/AuthProvider";
 import { jwtDecode } from "jwt-decode";
 
 function hasMatchingRole(allowedRoles, userRoles) {
@@ -19,9 +16,8 @@ function hasMatchingRole(allowedRoles, userRoles) {
 }
 
 const RequireAuth = ({ allowedRoles, unauthorizedComponent = null }) => {
-  const { auth } = useContext(AuthContext);
   const location = useLocation();
-  console.log(auth);
+
   let isAllowed = true;
   const decodedToken = undefined;
   const jwt = localStorage.getItem("jwt");

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import { useSwipeable } from "react-swipeable";
 import "./Decks.css";
+import { Link } from "react-router-dom";
 
 const apiUrl = process.env.REACT_APP_API_URL;
 
@@ -56,8 +57,12 @@ export default function Decks() {
     if (isLoading) {
       return;
     }
-    // Add your logic for adding a deck here
-    // ...
+
+    toast("Not implemented.", {
+      type: "error",
+      autoClose: 2000,
+      hideProgressBar: true,
+    });
 
     setIsLoading(false);
   };
@@ -67,17 +72,31 @@ export default function Decks() {
     if (isLoading) {
       return;
     }
-    // Add your logic for deleting a deck here
-    // ...
+
+    toast("Not implemented.", {
+      type: "error",
+      autoClose: 2000,
+      hideProgressBar: true,
+    });
 
     setIsLoading(false);
   };
+  const deckItemStyle = {
+    textDecoration: "none",
+    color: "inherit",
+  };
 
   const renderDeck = (deck: any) => (
-    <div key={deck.iddeck} className="deck-item">
-      <h3>{deck.title}</h3>
-      <p>{deck.description}</p>
-      {/* <button
+    <Link
+      key={deck.iddeck}
+      to={`/cards/${deck.iddeck}`}
+      className="deck-item"
+      style={deckItemStyle}
+    >
+      <div>
+        <h3>{deck.title}</h3>
+        <p>{deck.description}</p>
+        {/* <button
         className={`deck-delete-button ${isLoading ? "loading" : ""}`}
         onClick={(e) => handleDeleteDeckClick(e, deck.iddeck)}
       >
@@ -89,7 +108,8 @@ export default function Decks() {
           "Delete Deck"
         )}
       </button> */}
-    </div>
+      </div>
+    </Link>
   );
 
   return (

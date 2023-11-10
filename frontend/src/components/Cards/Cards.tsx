@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 import { useSwipeable } from "react-swipeable";
 import "./Cards.css";
 
@@ -7,6 +8,7 @@ import { ToastContainer, toast } from "react-toastify";
 const apiUrl = process.env.REACT_APP_API_URL;
 
 export default function Cards() {
+  const { iddeck } = useParams();
   const [cards, setCards]: [any, any] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [title, setTitle] = useState("");
@@ -16,8 +18,13 @@ export default function Cards() {
   const [startY, setStartY] = useState(null);
 
   const fetchCards = async () => {
+    setRefreshing(true);
     try {
-      const response = await fetch(apiUrl + "/card/");
+      let url = apiUrl + "/card/";
+      if (iddeck) {
+        url += `?iddeck=${iddeck}`;
+      }
+      const response = await fetch(url);
       if (response.ok) {
         const resp = await response.json();
         setCards(resp.cards);
@@ -27,6 +34,7 @@ export default function Cards() {
     } catch (error) {
       console.error("An error occurred while fetching data:", error);
     }
+    setRefreshing(false);
   };
 
   useEffect(() => {
@@ -34,9 +42,7 @@ export default function Cards() {
   }, []);
 
   const handleRefresh = async () => {
-    setRefreshing(true);
     await fetchCards();
-    setRefreshing(false);
   };
 
   const goToNextSlide = () => {
@@ -144,7 +150,7 @@ export default function Cards() {
     setIsLoading(false);
   };
 
-  if (cards.length === 0) {
+  if (refreshing) {
     return (
       <div className="spinner-container">
         <div className="spinner"></div>

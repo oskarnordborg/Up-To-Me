@@ -1,6 +1,8 @@
+from typing import Optional
+
 import psycopg2
 from app import db_connector
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 from psycopg2 import sql
 from pydantic import BaseModel
 
@@ -20,12 +22,22 @@ def map_card(sql_card: list):
 
 
 @router.get("/card/")
-async def get_cards():
+async def get_cards(iddeck: Optional[int] = Query(None)):
     cards: list = []
     try:
         with psycopg2.connect(**db_connection_params) as connection:
             cursor = connection.cursor()
-            cursor.execute(f"SELECT {', '.join(GET_CARD_FIELDS)} FROM card")
+            if iddeck is not None:
+                cursor.execute(
+                    f"SELECT {', '.join(GET_CARD_FIELDS)} "
+                    "FROM card "
+                    "JOIN card_deck ON card.idcard = card_deck.card "
+                    "WHERE card_deck.deck = %s",
+                    (iddeck,),
+                )
+            else:
+                cursor.execute(f"SELECT {', '.join(GET_CARD_FIELDS)} FROM card")
+
             cards = cursor.fetchall()
 
     except (Exception, psycopg2.Error) as error:
