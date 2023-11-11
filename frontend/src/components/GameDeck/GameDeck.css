@@ -1,41 +1,43 @@
-.Decks-main {
-  min-height: 90vh;
-  height: 90%;
+.game-decks-main {
   display: flex;
-  flex-direction: column;
-  font-size: calc(10px + 2vmin);
-  color: white;
-}
-
-.decks-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
   padding: 20px;
+  height: 160px; /* Adjust the width as needed */
 }
 
-.deck-item {
+.game-decks-grid {
+  display: flex;
+  gap: 20px;
+}
+
+.game-deck-item {
+  width: 100px; /* Adjust the width as needed */
   background-color: #ededed;
   border: 1px solid #ccc;
   border-radius: 5px;
-  padding: 20px;
-  height: 180px;
+  padding-top: 25px;
+  padding-left: 10px;
+  padding-right: 10px;
   text-align: center;
   box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
 }
+.game-deck-item.selected {
+  background-color: lightgreen; /* Change to your preferred color */
+}
 
-.deck-item h3 {
-  font-size: 24px;
+.game-deck-item h3 {
+  font-size: 12px;
   margin: 0;
   color: #333;
 }
 
-.deck-item p {
-  font-size: 16px;
+.game-deck-item p {
+  font-size: 12px;
   color: #666;
 }
 
-.deck-item img {
+.game-deck-item img {
   max-width: 100%;
   max-height: 200px;
 }

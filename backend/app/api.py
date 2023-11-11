@@ -9,6 +9,7 @@ from passwordless import (
     DeleteCredentialSchema,
     DeleteUserSchema,
     PasswordlessError,
+    RegisteredToken,
     RegisteredTokenSchema,
     RegisterToken,
     RegisterTokenSchema,
@@ -22,7 +23,7 @@ from passwordless import (
 )
 from pydantic import BaseModel
 
-from . import appuser, card, deck
+from . import appuser, card, deck, game
 from .passwordless_login.passwordless_bp import PasswordlessApiBlueprint
 
 app = FastAPI()
@@ -43,14 +44,19 @@ app.add_middleware(
 app.include_router(card.router)
 app.include_router(deck.router)
 app.include_router(appuser.router)
+app.include_router(game.router)
 
 api_bp = PasswordlessApiBlueprint(app)
 
 
 class RegisterInput(BaseModel):
-    username: str
+    email: str
     firstName: str
     lastName: str
+
+
+class RegisteredTokenUserId(RegisteredToken):
+    userid: str
 
 
 class LoginInput(BaseModel):
@@ -74,11 +80,16 @@ async def login(token: str):
 
 @app.post("/passwordless/register")
 async def register(request_data: RegisterInput):
+    new_user_id = str(uuid.uuid4())
     register_token = RegisterToken(
-        user_id=str(uuid.uuid4()),
-        username=request_data.username,
+        user_id=new_user_id,
+        username=request_data.email,
     )
-    response_data = api_bp.api_client.register_token(register_token)
+    response_data: RegisteredTokenUserId = api_bp.api_client.register_token(
+        register_token
+    )
+    if response_data:
+        return {"token": response_data.token, "userid": new_user_id}
     return response_data
 
 

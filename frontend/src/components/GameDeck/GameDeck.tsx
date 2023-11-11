@@ -1,16 +1,20 @@
 import React, { useEffect, useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import { useSwipeable } from "react-swipeable";
-import "./Decks.css";
-import { Link } from "react-router-dom";
+import "./GameDeck.css";
 
 const apiUrl = process.env.REACT_APP_API_URL;
 
-export default function Decks() {
+const GameDeck = ({
+  onSelectDeck,
+}: {
+  onSelectDeck: (deckId: number) => void;
+}): JSX.Element => {
   const [decks, setDecks] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [startY, setStartY] = useState(null);
+  const [selectedDeck, setSelectedDeck] = useState(null);
 
   const fetchDecks = async () => {
     setRefreshing(true);
@@ -67,50 +71,23 @@ export default function Decks() {
     setIsLoading(false);
   };
 
-  const handleDeleteDeckClick = async (e: any, deckId: number) => {
-    e.preventDefault();
-    if (isLoading) {
-      return;
-    }
+  const renderDeck = (deck: any) => {
+    const isSelected = selectedDeck === deck.iddeck;
 
-    toast("Not implemented.", {
-      type: "error",
-      autoClose: 2000,
-      hideProgressBar: true,
-    });
+    const handleClick = () => {
+      setSelectedDeck(deck.iddeck);
+      onSelectDeck(deck.iddeck);
+    };
 
-    setIsLoading(false);
-  };
-  const deckItemStyle = {
-    textDecoration: "none",
-    color: "inherit",
-  };
+    const deckClass = `game-deck-item ${isSelected ? "selected" : ""}`;
 
-  const renderDeck = (deck: any) => (
-    <Link
-      key={deck.iddeck}
-      to={`/cards/${deck.iddeck}`}
-      className="deck-item"
-      style={deckItemStyle}
-    >
-      <div>
+    return (
+      <div key={deck.iddeck} className={deckClass} onClick={handleClick}>
         <h3>{deck.title}</h3>
         <p>{deck.description}</p>
-        {/* <button
-        className={`deck-delete-button ${isLoading ? "loading" : ""}`}
-        onClick={(e) => handleDeleteDeckClick(e, deck.iddeck)}
-      >
-        {isLoading ? (
-          <>
-            <div className="small spinner"></div> Deleting Deck...
-          </>
-        ) : (
-          "Delete Deck"
-        )}
-      </button> */}
       </div>
-    </Link>
-  );
+    );
+  };
 
   if (refreshing) {
     return (
@@ -121,24 +98,12 @@ export default function Decks() {
   }
 
   return (
-    <div className="Decks-main" {...swipeHandlers}>
-      <div className="decks-grid">{decks.map((deck) => renderDeck(deck))}</div>
-      <div className="create-deck-container">
-        <button
-          className={`deck-create-button ${isLoading ? "loading" : ""}`}
-          onClick={handleAddDeckClick}
-          disabled={isLoading}
-        >
-          {isLoading ? (
-            <>
-              <div className="small spinner"></div> Creating...
-            </>
-          ) : (
-            "Create New Deck"
-          )}
-        </button>
+    <div className="game-decks-main" {...swipeHandlers}>
+      <div className="game-decks-grid">
+        {decks.map((deck) => renderDeck(deck))}
       </div>
       <ToastContainer />
     </div>
   );
-}
+};
+export default GameDeck;

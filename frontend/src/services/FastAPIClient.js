@@ -3,10 +3,9 @@ const BACKEND_URL = process.env.REACT_APP_API_URL;
 export default class FastApiClient {
     async register(user, firstName, lastName) {
         const request = {
-            username: user,
+            email: user,
             firstName: firstName,
-            lastName: lastName,
-            deviceName: user
+            lastName: lastName
         };
 
         const response = await fetch(`${BACKEND_URL}/passwordless/register`, {

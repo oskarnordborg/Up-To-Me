@@ -1,13 +1,16 @@
 import { useContext, useEffect, useRef, useState } from "react";
+import { useParams } from "react-router-dom";
 import authContext from "../context/AuthProvider";
 import * as Passwordless from "@passwordlessdev/passwordless-client";
 import FastAPIClient from "../services/FastAPIClient";
 import "./LoginPage.css";
 import { useNavigate } from "react-router-dom";
-
 import { ToastContainer, toast } from "react-toastify";
 
+const apiUrl = process.env.REACT_APP_API_URL;
+
 export default function LoginPage() {
+  const { startemail } = useParams();
   const userRef = useRef();
   const errRef = useRef();
   const [errMsg, setErrMsg] = useState("");
@@ -18,6 +21,9 @@ export default function LoginPage() {
 
   useEffect(() => {
     userRef.current.focus();
+    if (startemail) {
+      setEmail(startemail);
+    }
   }, []);
 
   const handleSubmit = async (e) => {
@@ -47,7 +53,7 @@ export default function LoginPage() {
 
     setAuth({ verifiedToken });
     setSuccess(true);
-    navigate("/");
+    navigate(`/user/${email}`);
   };
 
   return (

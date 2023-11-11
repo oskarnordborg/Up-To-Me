@@ -101,3 +101,13 @@
     transform: rotate(360deg);
   }
 }
+
+.start-game-link {
+  text-decoration: none;
+  color: white;
+  cursor: pointer;
+}
+
+.start-game-link:hover {
+  text-decoration: underline;
+}

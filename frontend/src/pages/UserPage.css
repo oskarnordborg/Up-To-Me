@@ -1,0 +1,56 @@
+.success-heading {
+  font-size: 24px;
+  color: green;
+}
+
+.success-paragraph {
+  font-size: 16px;
+  color: #333;
+}
+
+.error-message {
+  font-size: 16px;
+  color: red;
+}
+
+.visible {
+  display: block;
+}
+
+.hidden {
+  display: none;
+}
+
+.sign-in-heading {
+  font-size: 24px;
+  color: #d9d9d9;
+}
+
+.update-button {
+  background-color: #288b21;
+  color: white;
+  border: none;
+  margin-top: 100px;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.need-register {
+  color: #d9d9d9;
+}
+
+.line {
+  text-align: center;
+}
+
+.signup-link {
+  color: #0077ff;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+label {
+  color: #d9d9d9;
+}

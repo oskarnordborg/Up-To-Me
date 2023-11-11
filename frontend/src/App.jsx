@@ -6,6 +6,8 @@ import Cards from "./components/Cards/Cards";
 import Decks from "./components/Decks/Decks";
 import Layout from "./components/Layout";
 import LoginPage from "./pages/LoginPage";
+import MyGamesPage from "./pages/MyGamesPage";
+import StartGamePage from "./pages/StartGamePage";
 import RegisterPage from "./pages/RegisterPage";
 import RequireAuth from "./components/RequireAuth";
 import { ROLE_ADMIN, ROLE_USER } from "./constants/Roles";
@@ -33,28 +35,39 @@ class App extends Component {
             </div>
             <ul className="nav-links">
               <li>
-                <a href="/">Decks</a>
+                <a href="/games">My Games</a>
               </li>
               <li>
-                <a href="/user">User</a>
+                <a href="/">Decks</a>
               </li>
               <li>
                 <a href="/cards">Cards</a>
               </li>
               <li>
+                <a href="/user">User Page / Login</a>
+              </li>
+              <li>
                 <a href="/admin">Admin</a>
               </li>
             </ul>
+            <a className="start-game-link" href="/startgame">
+              Start game
+            </a>
           </nav>
           <Routes>
             <Route exact path="/" element={<Decks />} />
             <Route exact path="/cards/:iddeck?" element={<Cards />} />
             <Route path="/register" element={<RegisterPage />} />
-            <Route path="/login" element={<LoginPage />} />
+            <Route path="/login/:startemail?" element={<LoginPage />} />
+            <Route path="/startgame" element={<StartGamePage />} />
             <Route path="unauthorized" element={<UnauthorizedPage />} />
 
             <Route element={<RequireAuth allowedRoles={[ROLE_USER]} />}>
-              <Route path="/user" element={<UserPage />} />
+              <Route path="/games" element={<MyGamesPage />} />
+            </Route>
+
+            <Route element={<RequireAuth allowedRoles={[ROLE_USER]} />}>
+              <Route path="/user/:startemail?" element={<UserPage />} />
             </Route>
 
             <Route element={<RequireAuth allowedRoles={[ROLE_ADMIN]} />}>

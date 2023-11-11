@@ -28,35 +28,22 @@ export default function RegisterPage() {
     setErrMsg("");
   }, [email]);
 
-  const createAppUser = async () => {
+  const createAppUser = async (userid) => {
     try {
-      const response = await fetch(apiUrl + "/user/", {
+      await fetch(apiUrl + `/appuser/`, {
         method: "post",
         body: JSON.stringify({
+          userid: userid,
           email: email,
-          firstName: firstName,
-          lastName: lastName,
+          firstname: firstName,
+          lastname: lastName,
         }),
         headers: {
           Accept: "application/json",
           "Content-Type": "application/json",
         },
       });
-      if (response.ok) {
-      } else {
-        toast("Failed to create app user", {
-          type: "error",
-          autoClose: 1000,
-          hideProgressBar: true,
-        });
-      }
-    } catch (error) {
-      toast("Failed to create app user", {
-        type: "error",
-        autoClose: 1000,
-        hideProgressBar: true,
-      });
-    }
+    } catch (error) {}
   };
 
   const handleSubmit = async (e) => {
@@ -82,14 +69,18 @@ export default function RegisterPage() {
         registerToken.token,
         email
       );
-      if (finalResponse.ok) {
-        toast(`Registered '${email}'!`, {
-          autoClose: 1000,
+
+      if (finalResponse?.token) {
+        toast(`Registered '${email}' redirecting you to login page`, {
+          autoClose: 2000,
         });
-        createAppUser();
-        navigate("/");
+        console.log(registerToken);
+        createAppUser(registerToken.userid);
+        setTimeout(() => {
+          navigate(`/login/${email}`);
+        }, 2500);
       } else {
-        toast(`Something went wrong ${finalResponse.error.title || ""}`, {
+        toast(`Registration problem ${finalResponse.error?.title || ""}`, {
           type: "error",
         });
       }
