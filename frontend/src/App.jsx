@@ -36,19 +36,17 @@ class App extends Component {
               <div className="bar"></div>
             </div>
             <ul className="nav-links">
-              {userId && (
-                <li>
-                  <a href="/games">My Games</a>
-                </li>
-              )}
-              <li>
-                <a href="/decks">Decks</a>
-              </li>
-              <li>
-                <a href="/cards">Cards</a>
-              </li>
-              {userId && (
+              {userId ? (
                 <>
+                  <li>
+                    <a href="/games">My Games</a>
+                  </li>
+                  <li>
+                    <a href="/decks">Decks</a>
+                  </li>
+                  <li>
+                    <a href="/cards">Cards</a>
+                  </li>
                   <li>
                     <a href="/user">User Page</a>
                   </li>
@@ -56,6 +54,10 @@ class App extends Component {
                     <a href="/admin">Admin</a>
                   </li>
                 </>
+              ) : (
+                <li>
+                  <a href="/login">Login</a>
+                </li>
               )}
             </ul>
             {userId && (
