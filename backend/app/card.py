@@ -36,13 +36,14 @@ async def get_cards(
     if external_id:
         query += ", (appuser.external_id IS NOT NULL) AS usercard "
         query += "FROM card LEFT JOIN card_deck ON card.idcard = card_deck.card "
-        query += "LEFT JOIN appuser ON card.appuser = appuser.idappuser AND appuser.external_id = %s "
+        query += "LEFT JOIN appuser ON card.appuser = appuser.idappuser "
+        query += "WHERE appuser.external_id = %s OR appuser.external_id IS NULL "
         params.append(external_id)
     else:
         query += ", false AS usercard FROM card "
 
     if iddeck:
-        query += "WHERE card_deck.deck = %s"
+        query += (" AND " if "WHERE" in query else " WHERE ") + "card_deck.deck = %s"
         params.append(iddeck)
 
     try:

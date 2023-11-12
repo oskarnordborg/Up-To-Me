@@ -63,6 +63,7 @@ export default function Decks() {
     }
     setShowPreview(false);
   };
+
   const swipeHandlers = useSwipeable({
     onSwipedDown: (event: any) => {
       if (startY === null || event.event.touches[0]?.clientY - startY > 100) {
@@ -165,18 +166,6 @@ export default function Decks() {
             </div>
           </div>
         )}
-        {/* <button
-        className={`deck-delete-button ${isLoading ? "loading" : ""}`}
-        onClick={(e) => handleDeleteDeckClick(e, deck.iddeck)}
-      >
-        {isLoading ? (
-          <>
-            <div className="small spinner"></div> Deleting Deck...
-          </>
-        ) : (
-          "Delete Deck"
-        )}
-      </button> */}
       </div>
     </Link>
   );
