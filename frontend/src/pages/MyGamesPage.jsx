@@ -17,9 +17,9 @@ export default function MyGamesPage() {
     }
   }, []);
 
-  const fetchGames = async (user_id) => {
+  const fetchGames = async (userId) => {
     try {
-      const response = await fetch(apiUrl + `/games/?external_id=${user_id}`);
+      const response = await fetch(apiUrl + `/games/?external_id=${userId}`);
       if (response.ok) {
         const resp = await response.json();
         console.log(resp);

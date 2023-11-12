@@ -10,6 +10,7 @@ import MyGamesPage from "./pages/MyGamesPage";
 import StartGamePage from "./pages/StartGamePage";
 import RegisterPage from "./pages/RegisterPage";
 import RequireAuth from "./components/RequireAuth";
+import { getUserId } from "./components/RequireAuth";
 import { ROLE_ADMIN, ROLE_USER } from "./constants/Roles";
 import UnauthorizedPage from "./pages/UnauthorizedPage";
 import "react-toastify/dist/ReactToastify.css";
@@ -22,6 +23,7 @@ function toggleMenu() {
   }
 }
 
+const userId = getUserId();
 class App extends Component {
   render() {
     return (
@@ -34,33 +36,50 @@ class App extends Component {
               <div className="bar"></div>
             </div>
             <ul className="nav-links">
+              {userId && (
+                <li>
+                  <a href="/games">My Games</a>
+                </li>
+              )}
               <li>
-                <a href="/games">My Games</a>
-              </li>
-              <li>
-                <a href="/">Decks</a>
+                <a href="/decks">Decks</a>
               </li>
               <li>
                 <a href="/cards">Cards</a>
               </li>
-              <li>
-                <a href="/user">User Page / Login</a>
-              </li>
-              <li>
-                <a href="/admin">Admin</a>
-              </li>
+              {userId && (
+                <>
+                  <li>
+                    <a href="/user">User Page</a>
+                  </li>
+                  <li>
+                    <a href="/admin">Admin</a>
+                  </li>
+                </>
+              )}
             </ul>
-            <a className="start-game-link" href="/startgame">
-              Start game
-            </a>
+            {userId && (
+              <a className="start-game-link" href="/startgame">
+                Start game
+              </a>
+            )}
           </nav>
           <Routes>
             <Route exact path="/" element={<Decks />} />
-            <Route exact path="/cards/:iddeck?" element={<Cards />} />
+            <Route exact path="/decks" element={<Decks />} />
+            <Route
+              exact
+              path="/cards/:iddeck?/:deckTitle?"
+              element={<Cards />}
+            />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/login/:startemail?" element={<LoginPage />} />
-            <Route path="/startgame" element={<StartGamePage />} />
+
             <Route path="unauthorized" element={<UnauthorizedPage />} />
+
+            <Route element={<RequireAuth allowedRoles={[ROLE_USER]} />}>
+              <Route path="/startgame" element={<StartGamePage />} />
+            </Route>
 
             <Route element={<RequireAuth allowedRoles={[ROLE_USER]} />}>
               <Route path="/games" element={<MyGamesPage />} />

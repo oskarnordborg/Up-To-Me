@@ -28,9 +28,9 @@ export default function UserPage() {
     }
   }, []);
 
-  const fetchUserInfo = async (user_id) => {
+  const fetchUserInfo = async (userId) => {
     try {
-      const response = await fetch(apiUrl + `/appuser/?external_id=${user_id}`);
+      const response = await fetch(apiUrl + `/appuser/?external_id=${userId}`);
       if (response.ok) {
         const resp = await response.json();
         if (resp) {

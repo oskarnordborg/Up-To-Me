@@ -1,6 +1,24 @@
 import { useLocation, Navigate, Outlet } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 
+function getJwt() {
+  const jwt = localStorage.getItem("jwt");
+  if (jwt) {
+    return jwtDecode(jwt);
+  }
+
+  return false;
+}
+
+export function getUserId() {
+  const jwt = getJwt();
+  if (jwt) {
+    return jwt.user_id;
+  }
+
+  return false;
+}
+
 function hasMatchingRole(allowedRoles, userRoles) {
   if (!allowedRoles || allowedRoles.length === 0) {
     return true;
@@ -20,12 +38,10 @@ const RequireAuth = ({ allowedRoles, unauthorizedComponent = null }) => {
 
   let isAllowed = true;
   const decodedToken = undefined;
-  const jwt = localStorage.getItem("jwt");
+  const jwt = getJwt();
   if (allowedRoles) {
     if (jwt) {
-      const decodedToken = jwtDecode(jwt);
-
-      isAllowed = hasMatchingRole(allowedRoles, decodedToken.roles);
+      isAllowed = hasMatchingRole(allowedRoles, jwt.roles);
     } else {
       isAllowed = false;
     }

@@ -69,7 +69,7 @@ async def get_appuser(external_id: str):
                 games.append(game)
 
     except (Exception, psycopg2.Error) as error:
-        return HTTPException(status_code=500, detail=f"Database error: {str(error)}")
+        raise HTTPException(status_code=500, detail=f"Database error: {str(error)}")
 
     return {"games": games}
 
@@ -108,7 +108,7 @@ async def create_appuser(data: CreateGameInput):
 
     except (Exception, psycopg2.Error) as error:
         print("Error connecting to PostgreSQL:", error)
-        return HTTPException(status_code=500, detail=f"Database error: {str(error)}")
+        raise HTTPException(status_code=500, detail=f"Database error: {str(error)}")
 
     return {"success": True}
 
@@ -120,6 +120,6 @@ async def delete_game(idgame: int):
 
     except (Exception, psycopg2.Error) as error:
         print("Error connecting to PostgreSQL:", error)
-        return HTTPException(status_code=500, detail=f"Database error: {str(error)}")
+        raise HTTPException(status_code=500, detail=f"Database error: {str(error)}")
 
     return {"success": True}

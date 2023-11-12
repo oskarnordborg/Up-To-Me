@@ -2,13 +2,14 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useSwipeable } from "react-swipeable";
 import "./Cards.css";
+import { getUserId } from "../RequireAuth";
 
 import { ToastContainer, toast } from "react-toastify";
 
 const apiUrl = process.env.REACT_APP_API_URL;
 
 export default function Cards() {
-  const { iddeck } = useParams();
+  const { iddeck, deckTitle } = useParams();
   const [cards, setCards]: [any, any] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [title, setTitle] = useState("");
@@ -17,19 +18,31 @@ export default function Cards() {
   const [refreshing, setRefreshing] = useState(false);
   const [startY, setStartY] = useState(null);
 
+  const userId = getUserId();
+
   const fetchCards = async () => {
     setRefreshing(true);
     try {
-      let url = apiUrl + "/card/";
+      let url = apiUrl + `/card/`;
+      if (userId) {
+        url += `?external_id=${userId}`;
+      }
       if (iddeck) {
-        url += `?iddeck=${iddeck}`;
+        url += (userId ? "&" : "?") + `iddeck=${iddeck}`;
       }
       const response = await fetch(url);
       if (response.ok) {
         const resp = await response.json();
+        console.log(resp);
         setCards(resp.cards);
       } else {
-        console.error("Failed to fetch cards data");
+        const message = await response.text();
+        console.error("Failed to fetch cards data", message);
+        toast("Failed to fetch cards data" + message, {
+          type: "error",
+          autoClose: 2000,
+          hideProgressBar: true,
+        });
       }
     } catch (error) {
       console.error("An error occurred while fetching data:", error);
@@ -46,7 +59,7 @@ export default function Cards() {
   };
 
   const goToNextSlide = () => {
-    if (currentIndex + 1 < cards.length + 1) {
+    if (currentIndex < cards.length) {
       setCurrentIndex(currentIndex + 1);
     }
   };
@@ -61,7 +74,7 @@ export default function Cards() {
     onSwipedLeft: () => goToNextSlide(),
     onSwipedRight: () => goToPrevSlide(),
     onSwipedDown: (event: any) => {
-      if (startY === null || event.event.touches[0].clientY - startY > 0) {
+      if (startY === null || event.event.touches[0]?.clientY - startY > 0) {
         handleRefresh();
       }
     },
@@ -92,7 +105,12 @@ export default function Cards() {
     try {
       const response = await fetch(apiUrl + "/card/", {
         method: "post",
-        body: JSON.stringify({ title: title, description: description }),
+        body: JSON.stringify({
+          title: title,
+          description: description,
+          external_id: userId,
+          deck: iddeck,
+        }),
         headers: {
           Accept: "application/json",
           "Content-Type": "application/json",
@@ -160,26 +178,34 @@ export default function Cards() {
 
   return (
     <div className="Cards-main">
+      <div className="deck-title">{deckTitle}</div>
       <div className="carousel-container" {...handlers}>
-        <button className="carousel-button prev" onClick={goToPrevSlide}>
-          Previous
-        </button>
+        {currentIndex > 0 && (
+          <button className="carousel-button prev" onClick={goToPrevSlide}>
+            Previous
+          </button>
+        )}
         {currentIndex !== cards.length ? (
           <div className="carousel-slide">
             <h3>{cards[currentIndex]?.title}</h3>
             <p>{cards[currentIndex]?.description}</p>
-            <button
-              className={`delete-button ${isLoading ? "loading" : ""}`}
-              onClick={handleDeleteCardClick}
-            >
-              {isLoading ? (
-                <>
-                  <div className="small spinner"></div> Deleting Card...
-                </>
-              ) : (
-                "Delete Card"
-              )}
-            </button>
+            {cards[currentIndex]?.usercard && (
+              <div className="user-card-stamp">User card</div>
+            )}
+            {cards[currentIndex]?.usercard && (
+              <button
+                className={`delete-button ${isLoading ? "loading" : ""}`}
+                onClick={handleDeleteCardClick}
+              >
+                {isLoading ? (
+                  <>
+                    <div className="small spinner"></div> Deleting Card...
+                  </>
+                ) : (
+                  "Delete Card"
+                )}
+              </button>
+            )}
           </div>
         ) : (
           <div className="carousel-slide">
@@ -229,9 +255,11 @@ export default function Cards() {
             </button>
           </div>
         )}
-        <button className="carousel-button next" onClick={goToNextSlide}>
-          Next
-        </button>
+        {currentIndex < cards.length - (!userId ? 1 : 0) && (
+          <button className="carousel-button next" onClick={goToNextSlide}>
+            Next
+          </button>
+        )}
       </div>
       <ToastContainer />
     </div>

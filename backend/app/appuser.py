@@ -28,7 +28,7 @@ async def get_appusers():
             appusers = cursor.fetchall()
 
     except (Exception, psycopg2.Error) as error:
-        return HTTPException(status_code=500, detail=f"Database error: {str(error)}")
+        raise HTTPException(status_code=500, detail=f"Database error: {str(error)}")
     return {
         "appusers": [
             {
@@ -66,7 +66,7 @@ async def get_appuser(external_id: str):
                 appuser = cursor.fetchone()
 
     except (Exception, psycopg2.Error) as error:
-        return HTTPException(status_code=500, detail=f"Database error: {str(error)}")
+        raise HTTPException(status_code=500, detail=f"Database error: {str(error)}")
 
     return (
         {
@@ -87,14 +87,14 @@ async def search_appuser(term: str):
         with psycopg2.connect(**db_connection_params) as connection:
             cursor = connection.cursor()
             get_query = sql.SQL(
-                "SELECT idappuser, email FROM appuser WHERE email LIKE {}"
+                "SELECT idappuser, email FROM appuser WHERE email ILIKE {}"
             ).format(sql.Literal(f"{term}%"))
 
             cursor.execute(get_query)
             appusers = cursor.fetchall()
 
     except (Exception, psycopg2.Error) as error:
-        return HTTPException(status_code=500, detail=f"Database error: {str(error)}")
+        raise HTTPException(status_code=500, detail=f"Database error: {str(error)}")
 
     return {
         "appusers": [
@@ -126,7 +126,7 @@ async def create_appuser(data: AppUserInput):
 
     except (Exception, psycopg2.Error) as error:
         print("Error connecting to PostgreSQL:", error)
-        return HTTPException(status_code=500, detail=f"Database error: {str(error)}")
+        raise HTTPException(status_code=500, detail=f"Database error: {str(error)}")
 
     return {"success": True}
 
@@ -148,7 +148,7 @@ async def update_appuser(data: AppUserInput):
 
     except (Exception, psycopg2.Error) as error:
         print("Error connecting to PostgreSQL:", error)
-        return HTTPException(status_code=500, detail=f"Database error: {str(error)}")
+        raise HTTPException(status_code=500, detail=f"Database error: {str(error)}")
 
     return {"success": True}
 
@@ -160,6 +160,6 @@ async def delete_appuser(idappuser: int):
 
     except (Exception, psycopg2.Error) as error:
         print("Error connecting to PostgreSQL:", error)
-        return HTTPException(status_code=500, detail=f"Database error: {str(error)}")
+        raise HTTPException(status_code=500, detail=f"Database error: {str(error)}")
 
     return {"success": True}
