@@ -6,6 +6,7 @@ import Cards from "./components/Cards/Cards";
 import Decks from "./components/Decks/Decks";
 import Layout from "./components/Layout";
 import LoginPage from "./pages/LoginPage";
+import PublicPage from "./pages/PublicPage";
 import MyGamesPage from "./pages/MyGamesPage";
 import StartGamePage from "./pages/StartGamePage";
 import RegisterPage from "./pages/RegisterPage";
@@ -25,6 +26,13 @@ function toggleMenu() {
 
 const userId = getUserId();
 class App extends Component {
+  componentDidMount() {
+    const link = document.createElement("link");
+    link.rel = "manifest";
+    link.href = "/manifest.json"; // Update the path to your manifest file
+    document.head.appendChild(link);
+  }
+
   render() {
     return (
       <Router>
@@ -67,7 +75,7 @@ class App extends Component {
             )}
           </nav>
           <Routes>
-            <Route exact path="/" element={<Decks />} />
+            <Route exact path="/" element={<PublicPage />} />
             <Route exact path="/decks" element={<Decks />} />
             <Route
               exact

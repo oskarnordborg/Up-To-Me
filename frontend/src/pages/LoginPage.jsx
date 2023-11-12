@@ -42,7 +42,6 @@ export default function LoginPage() {
         type: "error",
       });
     }
-
     if (!tokenResp?.token) {
       return;
     }
@@ -54,6 +53,7 @@ export default function LoginPage() {
     setAuth({ verifiedToken });
     setSuccess(true);
     navigate(`/user/${email}`);
+    window.location.reload();
   };
 
   return (
