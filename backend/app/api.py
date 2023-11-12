@@ -76,6 +76,8 @@ async def login(token: str):
         return {"jwt": jwt_helper.create_jwt(response_data)}
     except PasswordlessError as e:
         raise HTTPException(status_code=400, detail=e.problem_details)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @app.post("/passwordless/register")
