@@ -16,8 +16,13 @@ class CreateGameInput(BaseModel):
     participants: list[int]
 
 
+class AcceptGameInput(BaseModel):
+    external_id: str
+    game: int
+
+
 @router.get("/games/")
-async def get_appuser(external_id: str):
+async def get_games(external_id: str):
     games = []
     try:
         with psycopg2.connect(**db_connection_params) as connection:
@@ -27,10 +32,10 @@ async def get_appuser(external_id: str):
             )
             cursor.execute(get_query, (external_id,))
             appuser_email = cursor.fetchone()[0]
-            print(appuser_email)
+
             cursor.execute(
                 """
-                SELECT g.idgame, g.createdtime, a.email, d.title
+                SELECT g.idgame, g.createdtime, a.email, d.title, ga.accepted
                 FROM game AS g
                 INNER JOIN game_appuser AS ga ON g.idgame = ga.game
                 INNER JOIN appuser AS a ON ga.appuser = a.idappuser
@@ -47,6 +52,7 @@ async def get_appuser(external_id: str):
                     "createdtime": game_data[1],
                     "appuser": game_data[2],
                     "deck": game_data[3],
+                    "accepted": game_data[4],
                 }
 
                 cursor.execute(
@@ -65,7 +71,6 @@ async def get_appuser(external_id: str):
                     for email in game_appusers_data
                     if email[0] != appuser_email
                 ]
-
                 games.append(game)
 
     except (Exception, psycopg2.Error) as error:
@@ -84,7 +89,7 @@ async def create_appuser(data: CreateGameInput):
             )
             cursor.execute(get_query, (data.external_id,))
             idappuser = cursor.fetchone()[0]
-            print("idappuser", idappuser)
+
             data.participants.append(idappuser)
 
             insert_query = sql.SQL(
@@ -93,17 +98,43 @@ async def create_appuser(data: CreateGameInput):
             cursor.execute(insert_query, (idappuser, data.deck))
             connection.commit()
             idgame = cursor.fetchone()
-            print("idgame", idgame)
+
             insert_game_appuser_query = """
-                INSERT INTO game_appuser (game, appuser)
+                INSERT INTO game_appuser (game, appuser, accepted)
                 VALUES %s
             """
             execute_values(
                 cursor,
                 insert_game_appuser_query,
-                [(idgame, participant) for participant in data.participants],
+                [
+                    (idgame, participant, participant == idappuser)
+                    for participant in data.participants
+                ],
             )
 
+            connection.commit()
+
+    except (Exception, psycopg2.Error) as error:
+        print("Error connecting to PostgreSQL:", error)
+        raise HTTPException(status_code=500, detail=f"Database error: {str(error)}")
+
+    return {"success": True}
+
+
+@router.put("/game/accept")
+async def accept_game(data: AcceptGameInput):
+    try:
+        with psycopg2.connect(**db_connection_params) as connection:
+            cursor = connection.cursor()
+            update_query = sql.SQL(
+                """
+                UPDATE game_appuser
+                SET accepted = TRUE
+                WHERE game_appuser.appuser = (SELECT idappuser FROM appuser WHERE external_id = %s)
+                AND game_appuser.game = %s;
+                """
+            )
+            cursor.execute(update_query, (data.external_id, data.game))
             connection.commit()
 
     except (Exception, psycopg2.Error) as error:

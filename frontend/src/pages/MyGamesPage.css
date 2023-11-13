@@ -94,6 +94,7 @@ ul.suggestions {
   padding: 0;
 }
 .game-list-row {
+  position: relative;
   text-align: left;
   background-color: #5f5f5f;
   padding: 10px;
@@ -107,4 +108,17 @@ ul.suggestions {
 .game-participant {
   margin: 0;
   margin-left: 20px;
+}
+
+.accept-button {
+  background-color: #0077ff;
+  position: absolute;
+  color: white;
+  border: none;
+  padding: 10px 10px;
+  right: 10px;
+  top: 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
 }

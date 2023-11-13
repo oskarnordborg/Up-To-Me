@@ -80,7 +80,17 @@ class App extends Component {
             )}
           </nav>
           <Routes>
-            <Route exact path="/" element={<PublicPage />} />
+            {/* <Route exact path="/" element={<PublicPage />} /> */}
+            <Route
+              element={
+                <RequireAuth
+                  allowedRoles={[ROLE_USER]}
+                  unauthorizedComponent={<PublicPage />}
+                />
+              }
+            >
+              <Route path="/" element={<MyGamesPage />} />
+            </Route>
             <Route exact path="/decks" element={<Decks />} />
             <Route
               exact
