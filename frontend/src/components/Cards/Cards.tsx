@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from "react";
+
+import { useParams } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import { useSwipeable } from "react-swipeable";
 import "./Cards.css";
@@ -9,6 +11,7 @@ import CardModal from "./CardModal";
 const apiUrl = process.env.REACT_APP_API_URL;
 
 export default function Cards() {
+  const { iddeck, deckTitle } = useParams();
   const [cards, setCards] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -29,14 +32,27 @@ export default function Cards() {
       setShowSlownessMessage(true);
     }, timeoutThreshold);
     try {
-      const response = await fetch(apiUrl + `/card/?external_id=${userId}`);
+      let url = apiUrl + `/card/`;
+      if (userId) {
+        url += `?external_id=${userId}`;
+      }
+      if (iddeck) {
+        url += (userId ? "&" : "?") + `iddeck=${iddeck}`;
+      }
+      const response = await fetch(url);
       clearTimeout(timeout);
       if (response.ok) {
         const resp = await response.json();
         setCards(resp.cards);
         setShowSlownessMessage(false);
       } else {
-        console.error("Failed to fetch cards data");
+        const message = await response.text();
+        console.error("Failed to fetch cards data", message);
+        toast("Failed to fetch cards data" + message, {
+          type: "error",
+          autoClose: 2000,
+          hideProgressBar: true,
+        });
       }
     } catch (error) {
       console.error("An error occurred while fetching data:", error);
@@ -198,6 +214,7 @@ export default function Cards() {
 
   return (
     <div className="Cards-main" {...swipeHandlers}>
+      <div className="deck-title">{deckTitle}</div>
       <div className="cards-grid">{cards.map((card) => renderCard(card))}</div>
       {selectedCard && (
         <CardModal
