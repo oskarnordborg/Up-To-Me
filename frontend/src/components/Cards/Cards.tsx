@@ -122,13 +122,17 @@ export default function Cards() {
     }
     setIsLoading(true);
     try {
+      let body: any = {
+        title: title,
+        description: description,
+        external_id: userId,
+      };
+      if (iddeck) {
+        body.deck = iddeck;
+      }
       const response = await fetch(apiUrl + "/card/", {
         method: "post",
-        body: JSON.stringify({
-          title: title,
-          description: description,
-          external_id: userId,
-        }),
+        body: JSON.stringify(body),
         headers: {
           Accept: "application/json",
           "Content-Type": "application/json",
