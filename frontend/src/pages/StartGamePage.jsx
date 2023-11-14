@@ -15,10 +15,12 @@ export default function StartGamePage() {
   const errRef = useRef();
   const [errMsg, setErrMsg] = useState("");
   const [success, setSuccess] = useState(false);
-  const [member, setMember] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [searchedChar, setSearchedChar] = useState("");
   const [userId, setUserId] = useState("");
   const [isLoading, setIsLoading] = useState("");
   const [suggestions, setSuggestions] = useState([]);
+  const [filteredSuggestions, setFilteredSuggestions] = useState([]);
   const [selectedParticipants, setSelectedParticipants] = useState([]);
   const [selectedDeck, setSelectedDeck] = useState(null);
   const navigate = useNavigate();
@@ -42,6 +44,7 @@ export default function StartGamePage() {
   const handleClickOutside = (e) => {
     if (suggestionsRef.current && !suggestionsRef.current.contains(e.target)) {
       setSuggestions([]);
+      setFilteredSuggestions([]);
       const suggestionsList = document.getElementById("suggestions");
       suggestionsList.style.display = "none";
     }
@@ -50,7 +53,7 @@ export default function StartGamePage() {
   const handleStartGame = async (e) => {
     e.preventDefault();
 
-    if (!selectedDeck || !selectedParticipants) {
+    if (!selectedDeck || selectedParticipants.length === 0) {
       toast("Please choose a deck and at least one member", {
         type: "warning",
         autoClose: 2000,
@@ -91,22 +94,20 @@ export default function StartGamePage() {
     setIsLoading(false);
   };
 
-  const handleInputChange = async (e) => {
-    if (e.key !== "Enter") {
-      return;
-    }
-    const suggestionsList = document.getElementById("suggestions");
-    suggestionsList.style.display = member !== "" ? "block" : "none";
-
+  const searchMembers = async (e) => {
+    console.log("Call");
     try {
       setIsLoading(true);
-      const response = await fetch(apiUrl + `/appuser/search?term=${member}`, {
-        method: "get",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-      });
+      const response = await fetch(
+        apiUrl + `/appuser/search?term=${searchTerm}`,
+        {
+          method: "get",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+        }
+      );
       if (response.ok) {
         const resp = await response.json();
         setSuggestions(resp.appusers || []);
@@ -114,6 +115,8 @@ export default function StartGamePage() {
           const suggestionsList = document.getElementById("suggestions");
           suggestionsList.style.display = "none";
         }
+        setIsLoading(false);
+        return resp.appusers || [];
       } else {
         console.error("Failed to fetch cards data");
       }
@@ -121,6 +124,27 @@ export default function StartGamePage() {
       console.error("An error occurred while fetching data:", error);
     }
     setIsLoading(false);
+  };
+
+  const handleInputChange = async (searchTerm) => {
+    if (searchTerm === "") {
+      setSuggestions([]);
+      setFilteredSuggestions([]);
+      setSearchedChar("");
+      return;
+    }
+    const suggestionsList = document.getElementById("suggestions");
+    suggestionsList.style.display = searchTerm !== "" ? "block" : "none";
+    let sugg = suggestions;
+    if (searchTerm[0] !== searchedChar) {
+      setSearchedChar(searchTerm[0]);
+      sugg = await searchMembers();
+    }
+
+    const updatedSuggestions = sugg.filter((suggestion) =>
+      suggestion.email.startsWith(searchTerm)
+    );
+    setFilteredSuggestions(updatedSuggestions);
   };
 
   const handleSelectItem = (item) => {
@@ -132,7 +156,7 @@ export default function StartGamePage() {
       setSelectedParticipants(updatedSelectedParticipants);
     }
     setSuggestions([]);
-    setMember("");
+    setSearchTerm("");
     const suggestionsList = document.getElementById("suggestions");
     suggestionsList.style.display = "none";
   };
@@ -145,7 +169,7 @@ export default function StartGamePage() {
       }
     });
     setSelectedParticipants(updatedSelectedParticipants);
-    setMember("");
+    setSearchTerm("");
   };
   return (
     <>
@@ -165,9 +189,11 @@ export default function StartGamePage() {
               type="text"
               id="members"
               autoComplete="off"
-              value={member}
-              onChange={(e) => setMember(e.target.value)}
-              onKeyDown={handleInputChange}
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                handleInputChange(e.target.value);
+              }}
               required
               aria-describedby="uidnote"
               className="input-field"
@@ -175,7 +201,7 @@ export default function StartGamePage() {
             {isLoading && <div className="spinner small"></div>}
           </div>
           <ul className="suggestions" id="suggestions" ref={suggestionsRef}>
-            {suggestions.map((suggestion, index) => (
+            {filteredSuggestions.map((suggestion, index) => (
               <li key={index} onClick={() => handleSelectItem(suggestion)}>
                 {suggestion.email}
               </li>

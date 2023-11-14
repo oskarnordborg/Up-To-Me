@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import { useSwipeable } from "react-swipeable";
+import { jwtDecode } from "jwt-decode";
 import "./GameDeck.css";
 
 const apiUrl = process.env.REACT_APP_API_URL;
@@ -15,11 +16,20 @@ const GameDeck = ({
   const [refreshing, setRefreshing] = useState(false);
   const [startY, setStartY] = useState(null);
   const [selectedDeck, setSelectedDeck] = useState(null);
+  const [userId, setUserId] = useState("");
+
+  useEffect(() => {
+    const jwt = localStorage.getItem("jwt");
+    if (jwt) {
+      const decodedToken: any = jwtDecode(jwt);
+      setUserId(decodedToken.user_id);
+    }
+  }, []);
 
   const fetchDecks = async () => {
     setRefreshing(true);
     try {
-      const response = await fetch(apiUrl + "/deck/");
+      const response = await fetch(apiUrl + `/deck/?external_id=${userId}`);
       if (response.ok) {
         const resp = await response.json();
         setDecks(resp.decks);
