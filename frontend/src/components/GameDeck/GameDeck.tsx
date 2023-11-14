@@ -18,18 +18,12 @@ const GameDeck = ({
   const [selectedDeck, setSelectedDeck] = useState(null);
   const [userId, setUserId] = useState("");
 
-  useEffect(() => {
-    const jwt = localStorage.getItem("jwt");
-    if (jwt) {
-      const decodedToken: any = jwtDecode(jwt);
-      setUserId(decodedToken.user_id);
-    }
-  }, []);
-
-  const fetchDecks = async () => {
+  const fetchDecks = async (inUserId: string = "") => {
     setRefreshing(true);
     try {
-      const response = await fetch(apiUrl + `/deck/?external_id=${userId}`);
+      const response = await fetch(
+        apiUrl + `/deck/?external_id=${inUserId ? inUserId : userId}`
+      );
       if (response.ok) {
         const resp = await response.json();
         setDecks(resp.decks);
@@ -43,7 +37,13 @@ const GameDeck = ({
   };
 
   useEffect(() => {
-    fetchDecks();
+    const jwt = localStorage.getItem("jwt");
+    if (jwt) {
+      const decodedToken: any = jwtDecode(jwt);
+      setUserId(decodedToken.user_id);
+      fetchDecks(decodedToken.user_id);
+      return;
+    }
   }, []);
 
   const handleRefresh = async () => {
