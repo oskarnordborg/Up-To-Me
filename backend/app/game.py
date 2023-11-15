@@ -1,5 +1,8 @@
+from typing import List
+
 import psycopg2
 from app import db_connector
+from app.api_classes import Game, GameCard
 from fastapi import APIRouter, HTTPException
 from psycopg2 import sql
 from psycopg2.extras import execute_values
@@ -19,6 +22,11 @@ class CreateGameInput(BaseModel):
 class AcceptGameInput(BaseModel):
     external_id: str
     game: int
+
+
+class GameInfoResponse(BaseModel):
+    game: Game
+    cards: List[GameCard]
 
 
 @router.get("/games/")
@@ -46,31 +54,40 @@ async def get_games(external_id: str):
             )
             games_data = cursor.fetchall()
 
+            game_ids = [game_data[0] for game_data in games_data]
+
+            cursor.execute(
+                """
+                SELECT ga.game, array_agg(a.email)
+                FROM game_appuser AS ga
+                INNER JOIN appuser AS a ON ga.appuser = a.idappuser
+                WHERE ga.game = ANY(%s)
+                GROUP BY ga.game
+                """,
+                (game_ids,),
+            )
+            game_participants_data = cursor.fetchall()
+            game_participants_dict = {
+                data[0]: data[1] for data in game_participants_data
+            }
+
+            games = []
+
             for game_data in games_data:
+                game_id = game_data[0]
+                participants = game_participants_dict.get(game_id, [])
+                participants = [
+                    email for email in participants if email != appuser_email
+                ]
+
                 game = {
-                    "idgame": game_data[0],
+                    "idgame": game_id,
                     "createdtime": game_data[1],
                     "appuser": game_data[2],
                     "deck": game_data[3],
                     "accepted": game_data[4],
+                    "participants": participants,
                 }
-
-                cursor.execute(
-                    """
-                    SELECT a.email
-                    FROM appuser AS a
-                    INNER JOIN game_appuser AS ga ON a.idappuser = ga.appuser
-                    WHERE ga.game = %s
-                    """,
-                    (game_data[0],),
-                )
-                game_appusers_data = cursor.fetchall()
-
-                game["participants"] = [
-                    email[0]
-                    for email in game_appusers_data
-                    if email[0] != appuser_email
-                ]
                 games.append(game)
 
     except (Exception, psycopg2.Error) as error:
@@ -79,11 +96,61 @@ async def get_games(external_id: str):
     return {"games": games}
 
 
-@router.post("/game/")
-async def create_appuser(data: CreateGameInput):
+@router.get("/game/{idgame}")
+async def get_game(idgame: int, external_id: str):
     try:
         with psycopg2.connect(**db_connection_params) as connection:
             cursor = connection.cursor()
+            # TODO: make sure the external_id has access
+
+            query_game = """
+                SELECT *
+                FROM game
+                WHERE idgame = %s
+            """
+            cursor.execute(query_game, (idgame,))
+            game_data = cursor.fetchone()
+
+            if not game_data:
+                raise HTTPException(status_code=404, detail="Game not found")
+
+            query_game_cards = """
+                SELECT gc.*
+                FROM game_card gc
+                INNER JOIN appuser player ON gc.player = player.idappuser
+                WHERE gc.game = %s AND player.external_id = %s
+            """
+            cursor.execute(query_game_cards, (idgame, external_id))
+            game_cards_data = cursor.fetchall()
+
+            query_game_appusers = """
+                SELECT email
+                FROM appuser
+                INNER JOIN game_appuser ON appuser.idappuser = game_appuser.appuser
+                WHERE game_appuser.game = %s AND appuser.external_id != %s
+            """
+            cursor.execute(query_game_appusers, (idgame, external_id))
+            game_appusers = cursor.fetchall()
+
+            game_data += ([user[0] for user in game_appusers],)
+            game = Game.from_tuple(game_data)
+            game_cards = [
+                GameCard.from_tuple(card_data) for card_data in game_cards_data
+            ]
+
+            return GameInfoResponse(game=game, cards=game_cards)
+
+    except (Exception, psycopg2.Error) as error:
+        print("Error connecting to PostgreSQL:", error)
+        raise HTTPException(status_code=500, detail=f"Database error: {str(error)}")
+
+
+@router.post("/game/")
+async def create_game(data: CreateGameInput):
+    try:
+        with psycopg2.connect(**db_connection_params) as connection:
+            cursor = connection.cursor()
+
             get_query = sql.SQL(
                 "SELECT idappuser FROM appuser WHERE external_id = %s LIMIT 1"
             )
@@ -92,25 +159,43 @@ async def create_appuser(data: CreateGameInput):
 
             data.participants.append(idappuser)
 
-            insert_query = sql.SQL(
-                ("INSERT INTO game (appuser, deck) VALUES (%s, %s) RETURNING idgame")
+            insert_game_query = sql.SQL(
+                "INSERT INTO game (appuser, deck) VALUES (%s, %s) RETURNING idgame"
             )
-            cursor.execute(insert_query, (idappuser, data.deck))
-            connection.commit()
-            idgame = cursor.fetchone()
+            cursor.execute(insert_game_query, (idappuser, data.deck))
+            idgame = cursor.fetchone()[0]
 
+            game_appuser_records = [
+                (idgame, participant, participant == idappuser)
+                for participant in data.participants
+            ]
             insert_game_appuser_query = """
                 INSERT INTO game_appuser (game, appuser, accepted)
                 VALUES %s
             """
-            execute_values(
-                cursor,
-                insert_game_appuser_query,
-                [
-                    (idgame, participant, participant == idappuser)
-                    for participant in data.participants
-                ],
+            execute_values(cursor, insert_game_appuser_query, game_appuser_records)
+
+            select_card_deck_query = """
+                SELECT c.title, c.description
+                FROM card_deck cd
+                INNER JOIN card c ON cd.card = c.idcard
+            """
+            cursor.execute(select_card_deck_query)
+            card_deck_data = cursor.fetchall()
+
+            game_cards_data = [
+                (idgame, appuser, False, title, description)
+                for title, description in card_deck_data
+                for appuser in data.participants
+            ]
+
+            insert_game_card_query = sql.SQL(
+                """
+                INSERT INTO game_card (game, player, wildcard, title, description)
+                VALUES %s
+            """
             )
+            execute_values(cursor, insert_game_card_query, game_cards_data)
 
             connection.commit()
 

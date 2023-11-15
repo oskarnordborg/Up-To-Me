@@ -5,7 +5,7 @@ import { ToastContainer, toast } from "react-toastify";
 const apiUrl = process.env.REACT_APP_API_URL;
 
 
-export default function CardModal({ card, close, fetchCards }) {
+export default function CardModal({ card, close, refreshPage }) {
   const [isLoading, setIsLoading] = useState(false);
   const handleDeleteCardClick = async (e) => {
     e.preventDefault();
@@ -29,7 +29,7 @@ export default function CardModal({ card, close, fetchCards }) {
         });
         setIsLoading(false);
         close();
-        await fetchCards();
+        await refreshPage();
       } else {
         console.error("Failed to fetch cards data");
       }

@@ -2,7 +2,7 @@ import { useContext, useEffect, useRef, useState } from "react";
 import authContext from "../context/AuthProvider";
 import FastAPIClient from "../services/FastAPIClient";
 import { jwtDecode } from "jwt-decode";
-import GameDeck from "../components/GameDeck/GameDeck";
+import ChooseGameDeck from "../components/Decks/ChooseGameDeck";
 import "./StartGamePage.css";
 import { useNavigate } from "react-router-dom";
 
@@ -82,7 +82,7 @@ export default function StartGamePage() {
           hideProgressBar: true,
         });
         setTimeout(() => {
-          navigate(`/games`);
+          navigate(`/mygames`);
         }, 2500);
         setIsLoading(false);
       } else {
@@ -181,7 +181,7 @@ export default function StartGamePage() {
         >
           {errMsg}
         </p>
-        <GameDeck onSelectDeck={handleDeckSelect} />
+        <ChooseGameDeck onSelectDeck={handleDeckSelect} userId={userId} />
         <div className="input-container">
           <label htmlFor="members">Search Members</label>
           <div style={{ position: "relative" }}>

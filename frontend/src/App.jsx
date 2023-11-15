@@ -4,27 +4,19 @@ import UserPage from "./pages/UserPage";
 import AdminPage from "./pages/AdminPage";
 import Cards from "./components/Cards/Cards";
 import Decks from "./components/Decks/Decks";
-import Layout from "./components/Layout";
 import LoginPage from "./pages/LoginPage";
 import PublicPage from "./pages/PublicPage";
 import MyGamesPage from "./pages/MyGamesPage";
 import StartGamePage from "./pages/StartGamePage";
+import GamePage from "./pages/GamePage";
 import RegisterPage from "./pages/RegisterPage";
 import RequireAuth from "./components/RequireAuth";
-import { getUserId } from "./components/RequireAuth";
 import { ROLE_ADMIN, ROLE_USER } from "./constants/Roles";
 import UnauthorizedPage from "./pages/UnauthorizedPage";
 import "react-toastify/dist/ReactToastify.css";
 import "./App.css";
+import NavbarWrapper from "./Navbar";
 
-function toggleMenu() {
-  const navLinks = document.querySelector(".nav-links");
-  if (navLinks) {
-    navLinks.classList.toggle("active");
-  }
-}
-
-const userId = getUserId();
 class App extends Component {
   componentDidMount() {
     const link = document.createElement("link");
@@ -37,48 +29,7 @@ class App extends Component {
     return (
       <Router>
         <div className="App">
-          <nav className="navbar">
-            <div className="menu-toggle" onClick={toggleMenu}>
-              <div className="bar"></div>
-              <div className="bar"></div>
-              <div className="bar"></div>
-            </div>
-            <ul className="nav-links">
-              {userId ? (
-                <>
-                  <li>
-                    <a href="/games">My Games</a>
-                  </li>
-                  <li>
-                    <a href="/decks">Decks</a>
-                  </li>
-                  <li>
-                    <a href="/cards">Cards</a>
-                  </li>
-                  <li>
-                    <a href="/user">User Page</a>
-                  </li>
-                  <li>
-                    <a href="/admin">Admin</a>
-                  </li>
-                </>
-              ) : (
-                <>
-                  <li>
-                    <a href="/login">Login</a>
-                  </li>
-                  <li>
-                    <a href="/register">Register</a>
-                  </li>
-                </>
-              )}
-            </ul>
-            {userId && (
-              <a className="start-game-link" href="/startgame">
-                Start game
-              </a>
-            )}
-          </nav>
+          <NavbarWrapper />
           <Routes>
             {/* <Route exact path="/" element={<PublicPage />} /> */}
             <Route
@@ -97,6 +48,7 @@ class App extends Component {
               path="/cards/:iddeck?/:deckTitle?"
               element={<Cards />}
             />
+            <Route exact path="/game/:idgame" element={<GamePage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/login/:startemail?" element={<LoginPage />} />
 
@@ -107,7 +59,7 @@ class App extends Component {
             </Route>
 
             <Route element={<RequireAuth allowedRoles={[ROLE_USER]} />}>
-              <Route path="/games" element={<MyGamesPage />} />
+              <Route path="/mygames" element={<MyGamesPage />} />
             </Route>
 
             <Route element={<RequireAuth allowedRoles={[ROLE_USER]} />}>

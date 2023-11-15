@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { jwtDecode } from "jwt-decode";
 import { ToastContainer, toast } from "react-toastify";
 import { setEmitFlags } from "typescript";
+import { Link } from "react-router-dom";
 import "./MyGamesPage.css";
 
 const apiUrl = process.env.REACT_APP_API_URL;
@@ -12,7 +13,6 @@ export default function MyGamesPage() {
   const [games, setGames] = useState([]);
 
   useEffect(() => {
-    console.log("Effect ran");
     const jwt = localStorage.getItem("jwt");
     if (jwt) {
       const decodedToken = jwtDecode(jwt);
@@ -71,30 +71,41 @@ export default function MyGamesPage() {
     }
   };
 
+  const gameItemStyle = {
+    textDecoration: "none",
+    color: "inherit",
+  };
+  const renderGame = (game) => (
+    <Link
+      key={game.idgame}
+      to={`/game/${game.idgame}`}
+      className="game-item"
+      style={gameItemStyle}
+    >
+      <li key={game.idgame} className="game-list-row" id={game.idgame}>
+        <p className="game-title">{game.deck}</p>
+        {!game.accepted && (
+          <button
+            onClick={() => acceptGame(game.idgame)}
+            className="accept-button"
+          >
+            Accept
+          </button>
+        )}
+
+        {game.participants.map((participant) => (
+          <p key={participant} className="game-participant">
+            {participant}
+          </p>
+        ))}
+      </li>
+    </Link>
+  );
+
   return (
     <section>
       <h2>Games </h2>
-      <ul className="game-list">
-        {games.map((game) => (
-          <li key={game.idgame} className="game-list-row" id={game.idgame}>
-            <p className="game-title">{game.deck}</p>
-            {!game.accepted && (
-              <button
-                onClick={() => acceptGame(game.idgame)}
-                className="accept-button"
-              >
-                Accept
-              </button>
-            )}
-
-            {game.participants.map((participant) => (
-              <p key={participant} className="game-participant">
-                {participant}
-              </p>
-            ))}
-          </li>
-        ))}
-      </ul>
+      <ul className="game-list">{games.map((game) => renderGame(game))}</ul>
       <ToastContainer />
     </section>
   );

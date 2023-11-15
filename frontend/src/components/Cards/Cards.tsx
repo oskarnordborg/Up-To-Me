@@ -224,7 +224,7 @@ export default function Cards() {
         <CardModal
           card={selectedCard}
           close={closeCardModal}
-          fetchCards={fetchCards}
+          refreshPage={fetchCards}
         />
       )}
       <div className="carousel-slide">

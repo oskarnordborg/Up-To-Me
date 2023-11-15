@@ -2,11 +2,11 @@ import React, { useEffect, useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import { useSwipeable } from "react-swipeable";
 import { jwtDecode } from "jwt-decode";
-import "./GameDeck.css";
+import "./ChooseGameDeck.css";
 
 const apiUrl = process.env.REACT_APP_API_URL;
 
-const GameDeck = ({
+const ChooseGameDeck = ({
   onSelectDeck,
 }: {
   onSelectDeck: (deckId: number) => void;
@@ -116,4 +116,4 @@ const GameDeck = ({
     </div>
   );
 };
-export default GameDeck;
+export default ChooseGameDeck;
