@@ -51,3 +51,51 @@ class GameCard(BaseModel):
             played_time=str(data_tuple[9])[:-10],
             finished_time=str(data_tuple[10])[:-10],
         )
+
+
+class Card(BaseModel):
+    idcard: int
+    title: str
+    description: str
+
+    @classmethod
+    def from_tuple(cls, data_tuple):
+        return cls(
+            idcard=data_tuple[0],
+            title=data_tuple[4],
+            description=data_tuple[5],
+        )
+
+
+class Deck(BaseModel):
+    iddeck: int
+    title: str
+    description: str
+
+    @classmethod
+    def from_tuple(cls, data_tuple):
+        return cls(
+            iddeck=data_tuple[0],
+            title=data_tuple[4],
+            description=data_tuple[5],
+        )
+
+
+class CardDeckInfo(BaseModel):
+    iddeck: int
+    deck_title: str
+    deck_description: str
+    idcard: int
+    card_title: str
+    card_description: str
+
+    @classmethod
+    def from_tuple(cls, data_tuple):
+        return cls(
+            iddeck=data_tuple[0],
+            deck_title=data_tuple[1],
+            deck_description=data_tuple[2],
+            idcard=data_tuple[3],
+            card_title=data_tuple[4],
+            card_description=data_tuple[5],
+        )

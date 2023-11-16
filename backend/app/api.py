@@ -1,5 +1,7 @@
 import uuid
 
+import psycopg2
+from app import db_connector
 from app.helpers import jwt_helper
 from fastapi import APIRouter, Body, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -21,9 +23,10 @@ from passwordless import (
     VerifySignIn,
     VerifySignInSchema,
 )
+from psycopg2 import sql
 from pydantic import BaseModel
 
-from . import appuser, card, deck, game
+from . import appuser, card, db_connection_params, deck, game
 from .passwordless_login.passwordless_bp import PasswordlessApiBlueprint
 
 app = FastAPI()
@@ -73,7 +76,24 @@ async def login(token: str):
     try:
         verify_sign_in = VerifySignIn(token)
         response_data: VerifiedUser = api_bp.api_client.sign_in(verify_sign_in)
-        return {"jwt": jwt_helper.create_jwt(response_data)}
+        roles = ["User"]
+        try:
+            with psycopg2.connect(**db_connection_params) as connection:
+                cursor = connection.cursor()
+                get_query = sql.SQL(
+                    "SELECT is_admin FROM appuser WHERE external_id = %s LIMIT 1"
+                )
+
+                cursor.execute(get_query, (response_data.user_id,))
+                appuser = cursor.fetchone()
+
+                if appuser[0] is True:
+                    roles.append("Admin")
+
+        except (Exception, psycopg2.Error) as error:
+            raise HTTPException(status_code=500, detail=f"Database error: {str(error)}")
+
+        return {"jwt": jwt_helper.create_jwt(payload=response_data, roles=roles)}
     except PasswordlessError as e:
         raise HTTPException(status_code=400, detail=e.problem_details)
     except Exception as e:

@@ -2,6 +2,7 @@ from typing import Optional
 
 import psycopg2
 from app import card, db_connector
+from app.api_classes import CardDeckInfo
 from fastapi import APIRouter, HTTPException, Query
 from psycopg2 import sql
 from pydantic import BaseModel
@@ -54,31 +55,52 @@ async def get_decks(external_id: Optional[str] = Query(None)):
     }
 
 
-@router.get("/deck/cards")
-async def get_deck(iddeck: int):
-    decks: list = []
+@router.get("/decks/cards")
+async def get_common_decks_and_cards(external_id: str):
     try:
         with psycopg2.connect(**db_connection_params) as connection:
             cursor = connection.cursor()
-            delete_query = sql.SQL(
-                "SELECT iddeck, email, firstname, lastname FROM deck WHERE iddeck = %s LIMIT 1"
+            get_query = sql.SQL(
+                "SELECT is_admin FROM appuser WHERE external_id = %s LIMIT 1"
             )
-            card.map_card()
-            cursor.execute(delete_query, (iddeck,))
-            decks = cursor.fetchone()
+            cursor.execute(get_query, (external_id,))
+            appuser = cursor.fetchone()
+
+            if appuser[0] is False:
+                raise HTTPException(status_code=401, detail="You are not authorized")
+
+            get_query = sql.SQL(
+                "SELECT d.iddeck, d.title, d.description, "
+                "c.idcard, c.title, c.description "
+                "FROM card_deck cd "
+                "LEFT JOIN card c ON c.idcard = cd.card "
+                "LEFT JOIN deck d ON d.iddeck = cd.deck "
+                "WHERE c.appuser IS NULL AND d.appuser IS NULL AND cd.appuser IS NULL "
+            )
+            cursor.execute(get_query)
+            cards_data = cursor.fetchall()
+            decks_and_cards = {}
+            for card_data in cards_data:
+                card_deck = CardDeckInfo.from_tuple(card_data)
+                if card_deck.iddeck not in decks_and_cards:
+                    decks_and_cards[card_deck.iddeck] = {
+                        "iddeck": card_deck.iddeck,
+                        "title": card_deck.deck_title,
+                        "description": card_deck.deck_description,
+                        "cards": [],
+                    }
+                decks_and_cards[card_deck.iddeck]["cards"].append(
+                    {
+                        "idcard": card_deck.idcard,
+                        "title": card_deck.card_title,
+                        "description": card_deck.card_description,
+                    }
+                )
 
     except (Exception, psycopg2.Error) as error:
         raise HTTPException(status_code=500, detail=f"Database error: {str(error)}")
-    return (
-        {
-            "iddeck": decks[0][0],
-            "email": decks[0][1],
-            "firstname": decks[0][2],
-            "lastname": decks[0][3],
-        }
-        if len(decks)
-        else {}
-    )
+
+    return {"decks": list(decks_and_cards.values())}
 
 
 @router.post("/deck/")
@@ -92,7 +114,7 @@ async def create_deck(data: CreateDeckInput):
             )
             cursor.execute(get_query, (data.external_id,))
             appuser = cursor.fetchone()
-            print(appuser)
+
             if not appuser:
                 raise HTTPException(status_code=422, detail="User not found")
 

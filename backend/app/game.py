@@ -178,9 +178,11 @@ async def create_game(data: CreateGameInput):
             select_card_deck_query = """
                 SELECT c.title, c.description
                 FROM card_deck cd
-                INNER JOIN card c ON cd.card = c.idcard
+                LEFT JOIN card c ON cd.card = c.idcard
+                LEFT JOIN appuser a ON cd.appuser = a.idappuser
+                WHERE cd.appuser IS NULL OR a.external_id = %s
             """
-            cursor.execute(select_card_deck_query)
+            cursor.execute(select_card_deck_query, (data.external_id,))
             card_deck_data = cursor.fetchall()
 
             game_cards_data = [

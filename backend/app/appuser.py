@@ -22,9 +22,7 @@ async def get_appusers():
     try:
         with psycopg2.connect(**db_connection_params) as connection:
             cursor = connection.cursor()
-            cursor.execute(
-                "SELECT external_id, email, firstname, lastname FROM appuser"
-            )
+            cursor.execute("SELECT idappuser, email, firstname, lastname FROM appuser")
             appusers = cursor.fetchall()
 
     except (Exception, psycopg2.Error) as error:
@@ -55,7 +53,7 @@ async def get_appuser(external_id: str):
 
             cursor.execute(get_query, (external_id,))
             appuser = cursor.fetchone()
-            print(appuser)
+
             if not appuser:
                 insert_query = sql.SQL(
                     "INSERT INTO appuser (external_id) VALUES (%s) "
@@ -83,7 +81,6 @@ async def get_appuser(external_id: str):
 @router.get("/appuser/search")
 async def search_appuser(term: str):
     try:
-        print(term)
         with psycopg2.connect(**db_connection_params) as connection:
             cursor = connection.cursor()
             get_query = sql.SQL(

@@ -1,0 +1,95 @@
+.admin-container {
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  font-family: Arial, sans-serif;
+}
+
+.deck {
+  margin-bottom: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  color: #454545;
+}
+
+.deck-header {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px;
+  cursor: pointer;
+  background-color: #f0f0f0;
+}
+
+.card-list {
+  padding: 10px;
+}
+
+.card {
+  margin-bottom: 10px;
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.card input[type="text"] {
+  flex: 1;
+  margin-right: 10px;
+}
+
+.card button {
+  margin-left: auto;
+  width: 50px;
+}
+
+input[type="text"] {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+  resize: vertical;
+  word-wrap: break-word;
+  overflow: hidden;
+  min-height: 40px;
+  margin-right: 10px;
+}
+
+input[type="text"]:hover {
+  border-color: #aaa;
+}
+
+input[type="text"]:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+}
+
+.card-input-fields {
+  width: 93%;
+}
+
+.toggle-button {
+  padding: 10px;
+}
+
+.admin-create-button {
+  background-color: #288b21;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+}
+.admin-delete-button {
+  background-color: #9c2e12;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+}

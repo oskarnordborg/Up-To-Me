@@ -11,6 +11,8 @@ export default function MyGamesPage() {
   // const { auth } = useContext(AuthContext);
   const [userId, setUserId] = useState([]);
   const [games, setGames] = useState([]);
+  const [refreshing, setRefreshing] = useState(false);
+  const [showSlownessMessage, setShowSlownessMessage] = useState(false);
 
   useEffect(() => {
     const jwt = localStorage.getItem("jwt");
@@ -22,17 +24,24 @@ export default function MyGamesPage() {
   }, []);
 
   const fetchGames = async (userId) => {
+    setRefreshing(true);
+    const timeoutThreshold = 3000;
+    const timeout = setTimeout(() => {
+      setShowSlownessMessage(true);
+    }, timeoutThreshold);
     try {
       const response = await fetch(apiUrl + `/games/?external_id=${userId}`);
+      clearTimeout(timeout);
       if (response.ok) {
         const resp = await response.json();
         setGames(resp.games);
       } else {
-        console.error("Failed to fetch cards data");
+        console.error("Failed to fetch games data");
       }
     } catch (error) {
       console.error("An error occurred while fetching data:", error);
     }
+    setRefreshing(false);
   };
   const handleUpdateAccepted = (idgame) => {
     const updatedGames = games.map((game) => {
@@ -101,6 +110,22 @@ export default function MyGamesPage() {
       </li>
     </Link>
   );
+
+  if (refreshing) {
+    return (
+      <div className="spinner-container">
+        <div className="spinner" />
+        <div className="slowness-message">
+          {showSlownessMessage && (
+            <div>
+              <p>Sorry for slowness </p>
+              <p>Waking up the server.. </p>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <section>
