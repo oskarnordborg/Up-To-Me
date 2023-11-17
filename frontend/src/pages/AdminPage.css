@@ -3,6 +3,7 @@
   max-width: 800px;
   margin: 0 auto;
   font-family: Arial, sans-serif;
+  margin-bottom: 100px;
 }
 
 .deck {
@@ -68,15 +69,16 @@ input[type="text"]:focus {
 }
 
 .card-input-fields {
-  width: 93%;
+  width: 90%;
 }
 
 .toggle-button {
   padding: 10px;
+  padding-right: 20px;
 }
 
-.admin-create-button {
-  background-color: #288b21;
+.admin-create-deck-button {
+  background-color: #03927d;
   color: white;
   border: none;
   padding: 10px 20px;
@@ -84,6 +86,17 @@ input[type="text"]:focus {
   cursor: pointer;
   font-size: 16px;
 }
+
+.admin-create-button {
+  background-color: #28a71f;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
 .admin-delete-button {
   background-color: #9c2e12;
   color: white;
@@ -92,4 +105,30 @@ input[type="text"]:focus {
   border-radius: 5px;
   cursor: pointer;
   font-size: 16px;
+}
+
+.admin-save-button {
+  background-color: #288b21;
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+}
+.resize-textarea {
+  resize: vertical; /* Allow vertical resizing */
+  height: auto;
+  min-height: 50px; /* Set a minimum height */
+  max-height: 200px; /* Set a maximum height */
+  width: 100%; /* Set width as needed */
+  padding: 10px; /* Adjust padding as needed */
+  border: 1px solid #ccc; /* Add border */
+  border-radius: 5px; /* Add border radius */
+  font-family: Arial, sans-serif; /* Specify font */
+  box-sizing: border-box; /* Include padding and border in total width/height */
+  overflow-y: auto; /* Add vertical scrollbar when needed */
 }
