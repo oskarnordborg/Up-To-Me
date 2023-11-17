@@ -1,12 +1,13 @@
 import React, { useState } from "react";
 import "./CardModal.css";
 import { ToastContainer, toast } from "react-toastify";
-
-const apiUrl = process.env.REACT_APP_API_URL;
-
+import FastAPIClient from "../../services/FastAPIClient";
 
 export default function CardModal({ card, close, refreshPage }) {
   const [isLoading, setIsLoading] = useState(false);
+
+  const fastAPIClient = new FastAPIClient();
+
   const handleDeleteCardClick = async (e) => {
     e.preventDefault();
     if (isLoading) {
@@ -14,13 +15,9 @@ export default function CardModal({ card, close, refreshPage }) {
     }
     setIsLoading(true);
     try {
-      const response = await fetch(apiUrl + `/card/?idcard=${card.idcard}`, {
-        method: "delete",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-      });
+      const response = await fastAPIClient.delete(
+        `/card/?idcard=${card.idcard}`
+      );
       if (response.ok) {
         toast("Card deleted, refreshing", {
           className: "toast-success",
@@ -42,20 +39,24 @@ export default function CardModal({ card, close, refreshPage }) {
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <h2>{card.title}</h2>
         <p>{card.description}</p>
-        <button className="close-button" onClick={close}>X</button>
+        <button className="close-button" onClick={close}>
+          X
+        </button>
         {card.usercard && <div className="user-card-stamp">User card</div>}
-        {card.usercard && <button
-          className={`delete-button ${isLoading ? "loading" : ""}`}
-          onClick={handleDeleteCardClick}
-        >
-          {isLoading ? (
-            <>
-              <div className="small spinner"></div> Deleting Card...
-            </>
-          ) : (
-            "Delete Card"
-          )}
-        </button>}
+        {card.usercard && (
+          <button
+            className={`delete-button ${isLoading ? "loading" : ""}`}
+            onClick={handleDeleteCardClick}
+          >
+            {isLoading ? (
+              <>
+                <div className="small spinner"></div> Deleting Card...
+              </>
+            ) : (
+              "Delete Card"
+            )}
+          </button>
+        )}
       </div>
       <ToastContainer />
     </div>

@@ -9,6 +9,7 @@ import { getUserId } from "../components/RequireAuth";
 import GameCardModal from "../components/Cards/GameCardModal";
 import { useNavigate } from "react-router-dom";
 import ConfirmDialog from "../components/ConfirmDialog";
+import FastAPIClient from "../services/FastAPIClient";
 
 const apiUrl = process.env.REACT_APP_API_URL;
 
@@ -26,6 +27,7 @@ export default function GamePage() {
   const [showConfirmResignModal, setShowConfirmResignModal] = useState(false);
   const navigate = useNavigate();
 
+  const fastAPIClient = new FastAPIClient();
   const userId = getUserId();
 
   const fetchGameInfo = async () => {
@@ -37,17 +39,15 @@ export default function GamePage() {
     try {
       let url = apiUrl + `/game/${idgame}?external_id=${userId}`;
 
-      const response = await fetch(url);
+      const response = await fastAPIClient.get(url);
       clearTimeout(timeout);
-      if (response.ok) {
-        const resp = await response.json();
-        setGameInfo(resp.game);
-        setCards(resp.cards);
+      if (!response.error) {
+        setGameInfo(response.game);
+        setCards(response.cards);
         setShowSlownessMessage(false);
       } else {
-        const message = await response.text();
-        console.error("Failed to fetch cards data", message);
-        toast("Failed to fetch cards data" + message, {
+        console.error("Failed to fetch cards data", response.error);
+        toast("Failed to fetch cards data" + response.error, {
           type: "error",
           autoClose: 2000,
           hideProgressBar: true,

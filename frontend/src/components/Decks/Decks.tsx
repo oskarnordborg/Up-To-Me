@@ -4,8 +4,7 @@ import { useSwipeable } from "react-swipeable";
 import "./Decks.css";
 import { Link } from "react-router-dom";
 import { getUserId } from "../RequireAuth";
-
-const apiUrl = process.env.REACT_APP_API_URL;
+import FastAPIClient from "../../services/FastAPIClient";
 
 export default function Decks() {
   const [decks, setDecks] = useState([]);
@@ -18,6 +17,7 @@ export default function Decks() {
   const [timer, setTimer] = useState<NodeJS.Timeout | null>(null);
   const [showPreview, setShowPreview] = useState(false);
 
+  const fastAPIClient = new FastAPIClient();
   const userId = getUserId();
 
   const fetchDecks = async () => {
@@ -27,13 +27,17 @@ export default function Decks() {
       setShowSlownessMessage(true);
     }, timeoutThreshold);
     try {
-      const response = await fetch(apiUrl + `/deck/?external_id=${userId}`);
+      const response = await fastAPIClient.get(`/decks/?external_id=${userId}`);
       clearTimeout(timeout);
-      if (response.ok) {
-        const resp = await response.json();
-        setDecks(resp.decks);
+      if (!response.error) {
+        setDecks(response.decks);
       } else {
-        console.error("Failed to fetch decks data");
+        console.error("Failed to fetch decks data: " + response.error);
+        toast("Failed to fetch decks data: " + response.error, {
+          type: "error",
+          autoClose: 2000,
+          hideProgressBar: true,
+        });
       }
     } catch (error) {
       console.error("An error occurred while fetching data:", error);
@@ -95,19 +99,12 @@ export default function Decks() {
     }
     setIsLoading(true);
     try {
-      const response = await fetch(apiUrl + "/deck/", {
-        method: "post",
-        body: JSON.stringify({
-          title: title,
-          description: description,
-          external_id: userId,
-        }),
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
+      const response = await fastAPIClient.post("/deck/", {
+        title: title,
+        description: description,
+        external_id: userId,
       });
-      if (response.ok) {
+      if (!response.error) {
         toast("Card created, refreshing", {
           className: "toast-success",
           autoClose: 1000,
@@ -118,7 +115,12 @@ export default function Decks() {
         setTitle("");
         setDescription("");
       } else {
-        console.error("Failed to fetch decks data");
+        console.error("Failed to add deck");
+        toast("Failed to add deck: " + response.error, {
+          type: "error",
+          autoClose: 2000,
+          hideProgressBar: true,
+        });
       }
     } catch (error) {
       console.error("An error occurred while fetching data:", error);

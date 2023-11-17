@@ -3,8 +3,7 @@ import { ToastContainer, toast } from "react-toastify";
 import { useSwipeable } from "react-swipeable";
 import { jwtDecode } from "jwt-decode";
 import "./ChooseGameDeck.css";
-
-const apiUrl = process.env.REACT_APP_API_URL;
+import FastAPIClient from "../../services/FastAPIClient";
 
 const ChooseGameDeck = ({
   onSelectDeck,
@@ -18,17 +17,23 @@ const ChooseGameDeck = ({
   const [selectedDeck, setSelectedDeck] = useState(null);
   const [userId, setUserId] = useState("");
 
+  const fastAPIClient = new FastAPIClient();
+
   const fetchDecks = async (inUserId: string = "") => {
     setRefreshing(true);
     try {
-      const response = await fetch(
-        apiUrl + `/deck/?external_id=${inUserId ? inUserId : userId}`
+      const response = await fastAPIClient.get(
+        `/deck/?external_id=${inUserId ? inUserId : userId}`
       );
-      if (response.ok) {
-        const resp = await response.json();
-        setDecks(resp.decks);
+      if (!response.error) {
+        setDecks(response.decks);
       } else {
-        console.error("Failed to fetch decks data");
+        console.error("Failed to fetch decks data: " + response.error);
+        toast("Failed to fetch decks data: " + response.error, {
+          type: "error",
+          autoClose: 2000,
+          hideProgressBar: true,
+        });
       }
     } catch (error) {
       console.error("An error occurred while fetching data:", error);
@@ -65,21 +70,6 @@ const ChooseGameDeck = ({
       setStartY(null);
     },
   });
-
-  const handleAddDeckClick = async (e: any) => {
-    e.preventDefault();
-    if (isLoading) {
-      return;
-    }
-
-    toast("Not implemented.", {
-      type: "error",
-      autoClose: 2000,
-      hideProgressBar: true,
-    });
-
-    setIsLoading(false);
-  };
 
   const renderDeck = (deck: any) => {
     const isSelected = selectedDeck === deck.iddeck;

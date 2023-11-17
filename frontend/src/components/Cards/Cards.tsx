@@ -7,8 +7,7 @@ import "./Cards.css";
 import { Link } from "react-router-dom";
 import { getUserId } from "../RequireAuth";
 import CardModal from "./CardModal";
-
-const apiUrl = process.env.REACT_APP_API_URL;
+import FastAPIClient from "../../services/FastAPIClient";
 
 export default function Cards() {
   const { iddeck, deckTitle } = useParams();
@@ -23,6 +22,7 @@ export default function Cards() {
   const [showPreview, setShowPreview] = useState(false);
   const [selectedCard, setSelectedCard] = useState(null);
 
+  const fastAPIClient = new FastAPIClient();
   const userId = getUserId();
 
   const fetchCards = async () => {
@@ -32,23 +32,21 @@ export default function Cards() {
       setShowSlownessMessage(true);
     }, timeoutThreshold);
     try {
-      let url = apiUrl + `/card/`;
+      let url = `/cards/`;
       if (userId) {
         url += `?external_id=${userId}`;
       }
       if (iddeck) {
         url += (userId ? "&" : "?") + `iddeck=${iddeck}`;
       }
-      const response = await fetch(url);
+      const response = await fastAPIClient.get(url);
       clearTimeout(timeout);
-      if (response.ok) {
-        const resp = await response.json();
-        setCards(resp.cards);
+      if (!response.error) {
+        setCards(response.cards);
         setShowSlownessMessage(false);
       } else {
-        const message = await response.text();
-        console.error("Failed to fetch cards data", message);
-        toast("Failed to fetch cards data" + message, {
+        console.error("Failed to fetch cards data", response.error);
+        toast("Failed to fetch cards data" + response.error, {
           type: "error",
           autoClose: 2000,
           hideProgressBar: true,
@@ -66,21 +64,6 @@ export default function Cards() {
 
   const handleRefresh = async () => {
     await fetchCards();
-  };
-
-  const handleMouseDown = () => {
-    const newTimer = setTimeout(() => {
-      setShowPreview(true);
-    }, 500);
-    setTimer(newTimer);
-  };
-
-  const handleMouseUp = () => {
-    if (timer) {
-      clearTimeout(timer);
-      setTimer(null);
-    }
-    setShowPreview(false);
   };
 
   const swipeHandlers = useSwipeable({
@@ -130,15 +113,8 @@ export default function Cards() {
       if (iddeck) {
         body.deck = iddeck;
       }
-      const response = await fetch(apiUrl + "/card/", {
-        method: "post",
-        body: JSON.stringify(body),
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-      });
-      if (response.ok) {
+      const response = await fastAPIClient.post("/card/", body);
+      if (!response.error) {
         toast("Card created, refreshing", {
           className: "toast-success",
           autoClose: 1000,
@@ -149,7 +125,12 @@ export default function Cards() {
         setTitle("");
         setDescription("");
       } else {
-        console.error("Failed to fetch cards data");
+        console.error("Failed to add card: " + response.error);
+        toast("Failed to add card", {
+          className: "toast-error",
+          autoClose: 1000,
+          hideProgressBar: true,
+        });
       }
     } catch (error) {
       console.error("An error occurred while fetching data:", error);

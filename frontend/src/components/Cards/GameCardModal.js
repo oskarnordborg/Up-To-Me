@@ -2,8 +2,6 @@ import React, { useState } from "react";
 import "./GameCardModal.css";
 import { ToastContainer, toast } from "react-toastify";
 
-const apiUrl = process.env.REACT_APP_API_URL;
-
 export default function GameCardModal({ card, close, refreshPage }) {
   const [isLoading, setIsLoading] = useState(false);
 
