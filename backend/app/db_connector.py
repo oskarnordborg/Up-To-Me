@@ -4,6 +4,7 @@ from psycopg2 import sql
 from . import db_connection_params
 
 
+# TODO: idappuser
 def delete_object(table: str, idobject: int, idappuser: int):
     with psycopg2.connect(**db_connection_params) as connection:
         cursor = connection.cursor()

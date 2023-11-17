@@ -320,6 +320,7 @@ const AdminPage = () => {
         onCancel={handleSaveCancel}
         showModal={showConfirmSaveModal}
       />
+      <ToastContainer />
     </>
   );
 };
