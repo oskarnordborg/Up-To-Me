@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { jwtDecode } from "jwt-decode";
 import { ToastContainer, toast } from "react-toastify";
 import "./UserPage.css";
+import { getUserId } from "../components/RequireAuth";
 
 const apiUrl = process.env.REACT_APP_API_URL;
 
@@ -14,19 +15,17 @@ export default function UserPage() {
   const userRef = useRef();
   const firstNameRef = useRef();
   const lastNameRef = useRef();
-  const [userId, setUserId] = useState("");
   const [email, setEmail] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
 
+  const userId = getUserId();
+
   useEffect(() => {
-    const jwt = localStorage.getItem("jwt");
-    if (jwt) {
-      const decodedToken = jwtDecode(jwt);
-      setUserId(decodedToken.user_id);
-      fetchUserInfo(decodedToken.user_id);
+    if (userId) {
+      fetchUserInfo(userId);
     }
-  }, []);
+  }, [userId]);
 
   const fetchUserInfo = async (userId) => {
     try {

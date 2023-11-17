@@ -32,12 +32,12 @@ async def get_decks(external_id: Optional[str] = Query(None)):
                 "FROM deck LEFT JOIN appuser ON deck.appuser = appuser.idappuser "
             )
             if external_id:
-                query += "WHERE deleted = FALSE AND appuser IS NULL OR appuser.external_id = %s"
+                query += "WHERE deck.deleted = FALSE AND appuser IS NULL OR appuser.external_id = %s"
                 cursor.execute(query, (external_id,))
             else:
-                query += "WHERE deleted = FALSE AND appuser IS NULL"
+                query += "WHERE deck.deleted = FALSE AND appuser IS NULL"
                 cursor.execute(query)
-            print(query)
+
             decks = cursor.fetchall()
 
     except (Exception, psycopg2.Error) as error:
@@ -60,7 +60,6 @@ async def create_deck(data: CreateDeckInput):
     try:
         with psycopg2.connect(**db_connection_params) as connection:
             cursor = connection.cursor()
-            print(data.external_id)
             get_query = sql.SQL(
                 "SELECT idappuser FROM appuser WHERE deleted = FALSE AND external_id = %s LIMIT 1"
             )
