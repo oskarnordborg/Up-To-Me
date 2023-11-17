@@ -25,7 +25,7 @@ def map_card(sql_card: list):
     }
 
 
-@router.get("/card/")
+@router.get("/cards/")
 async def get_cards(
     external_id: Optional[str] = Query(None), iddeck: Optional[int] = Query(None)
 ):
@@ -43,9 +43,10 @@ async def get_cards(
         query += ", false AS usercard FROM card "
 
     if iddeck:
-        query += (" AND " if "WHERE" in query else " WHERE ") + "card_deck.deck = %s"
+        query += (" AND " if "WHERE" in query else " WHERE ") + "card_deck.deck = %s "
         params.append(iddeck)
 
+    query += (" AND " if "WHERE" in query else " WHERE ") + "deleted = FALSE "
     try:
         with psycopg2.connect(**db_connection_params) as connection:
             cursor = connection.cursor()
@@ -73,22 +74,27 @@ async def create_card(data: CreateCardInput):
 
             idappuser = appuser[0]
             insert_query = sql.SQL(
-                "INSERT INTO card (title, description, appuser) VALUES ({}) RETURNING idcard"
+                "INSERT INTO card (title, description, appuser, createdby, updatedby) VALUES ({}) RETURNING idcard"
             ).format(
-                sql.SQL(", ").join([sql.Placeholder()] * 3),
+                sql.SQL(", ").join([sql.Placeholder()] * 5),
             )
 
-            cursor.execute(insert_query, (data.title, data.description, idappuser))
+            cursor.execute(
+                insert_query,
+                (data.title, data.description, idappuser, idappuser, idappuser),
+            )
             connection.commit()
             if data.deck:
                 idcard = cursor.fetchone()[0]
 
                 insert_query = sql.SQL(
-                    "INSERT INTO card_deck (card, deck, appuser) VALUES ({})"
+                    "INSERT INTO card_deck (card, deck, appuser, createdby, updatedby) VALUES ({})"
                 ).format(
-                    sql.SQL(", ").join([sql.Placeholder()] * 3),
+                    sql.SQL(", ").join([sql.Placeholder()] * 5),
                 )
-                cursor.execute(insert_query, (idcard, data.deck, idappuser))
+                cursor.execute(
+                    insert_query, (idcard, data.deck, idappuser, idappuser, idappuser)
+                )
                 connection.commit()
 
     except (Exception, psycopg2.Error) as error:
