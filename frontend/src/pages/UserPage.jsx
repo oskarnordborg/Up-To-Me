@@ -6,8 +6,7 @@ import { jwtDecode } from "jwt-decode";
 import { ToastContainer, toast } from "react-toastify";
 import "./UserPage.css";
 import { getUserId } from "../components/RequireAuth";
-
-const apiUrl = process.env.REACT_APP_API_URL;
+import FastAPIClient from "../services/FastAPIClient";
 
 export default function UserPage() {
   // const { auth } = useContext(AuthContext);
@@ -19,6 +18,7 @@ export default function UserPage() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
 
+  const fastAPIClient = new FastAPIClient();
   const userId = getUserId();
 
   useEffect(() => {
@@ -29,16 +29,17 @@ export default function UserPage() {
 
   const fetchUserInfo = async (userId) => {
     try {
-      const response = await fetch(apiUrl + `/appuser/?external_id=${userId}`);
-      if (response.ok) {
-        const resp = await response.json();
-        if (resp) {
-          setEmail(resp.email || startemail);
-          setFirstName(resp.firstname || "");
-          setLastName(resp.lastname || "");
+      const response = await fastAPIClient.get(
+        `/appuser/?external_id=${userId}`
+      );
+      if (!response.error) {
+        if (response) {
+          setEmail(response.email || startemail);
+          setFirstName(response.firstname || "");
+          setLastName(response.lastname || "");
         }
       } else {
-        console.error("Failed to fetch user data");
+        console.error("Failed to fetch user data: " + response.error);
       }
     } catch (error) {
       console.error("An error occurred while fetching data:", error);
@@ -47,20 +48,13 @@ export default function UserPage() {
 
   const updateAppUser = async () => {
     try {
-      const response = await fetch(apiUrl + `/appuser/`, {
-        method: "put",
-        body: JSON.stringify({
-          userid: userId,
-          email: email,
-          firstname: firstName,
-          lastname: lastName,
-        }),
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
+      const response = await fastAPIClient.put(`/appuser/`, {
+        userid: userId,
+        email: email,
+        firstname: firstName,
+        lastname: lastName,
       });
-      if (response.ok) {
+      if (!response.error) {
         toast("Updated info", {
           type: "success",
           autoClose: 1000,

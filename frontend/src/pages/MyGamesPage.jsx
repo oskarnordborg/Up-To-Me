@@ -1,26 +1,23 @@
 import React, { useEffect, useState } from "react";
 import { jwtDecode } from "jwt-decode";
 import { ToastContainer, toast } from "react-toastify";
-import { setEmitFlags } from "typescript";
+import { getUserId } from "../components/RequireAuth";
 import { Link } from "react-router-dom";
 import "./MyGamesPage.css";
+import FastAPIClient from "../services/FastAPIClient";
 
 const apiUrl = process.env.REACT_APP_API_URL;
 
 export default function MyGamesPage() {
-  // const { auth } = useContext(AuthContext);
-  const [userId, setUserId] = useState([]);
   const [games, setGames] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
   const [showSlownessMessage, setShowSlownessMessage] = useState(false);
 
+  const fastAPIClient = new FastAPIClient();
+  const userId = getUserId();
+
   useEffect(() => {
-    const jwt = localStorage.getItem("jwt");
-    if (jwt) {
-      const decodedToken = jwtDecode(jwt);
-      setUserId(decodedToken.user_id);
-      fetchGames(decodedToken.user_id);
-    }
+    fetchGames(userId);
   }, []);
 
   const fetchGames = async (userId) => {
@@ -30,13 +27,17 @@ export default function MyGamesPage() {
       setShowSlownessMessage(true);
     }, timeoutThreshold);
     try {
-      const response = await fetch(apiUrl + `/games/?external_id=${userId}`);
+      const response = await fastAPIClient.get(`/games/?external_id=${userId}`);
       clearTimeout(timeout);
-      if (response.ok) {
-        const resp = await response.json();
-        setGames(resp.games);
+      if (!response.error) {
+        setGames(response.games);
       } else {
-        console.error("Failed to fetch games data");
+        console.error("Failed to fetch games data: " + response.error);
+        toast("Failed to fetch games data: " + response.error, {
+          type: "error",
+          autoClose: 2000,
+          hideProgressBar: true,
+        });
       }
     } catch (error) {
       console.error("An error occurred while fetching data:", error);
@@ -55,21 +56,14 @@ export default function MyGamesPage() {
   };
   const acceptGame = async (idgame) => {
     try {
-      const response = await fetch(apiUrl + `/game/accept`, {
-        method: "put",
-        body: JSON.stringify({
-          game: idgame,
-          external_id: userId,
-        }),
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
+      const response = await fastAPIClient.put(`/game/accept`, {
+        game: idgame,
+        external_id: userId,
       });
-      if (response.ok) {
+      if (!response.error) {
         handleUpdateAccepted(idgame);
       } else {
-        toast("Failed to accept, try again.", {
+        toast("Failed to accept, try again. " + response.error, {
           type: "error",
           autoClose: 2000,
           hideProgressBar: true,

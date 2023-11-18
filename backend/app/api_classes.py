@@ -19,7 +19,10 @@ class Game(BaseModel):
             updatedtime=str(data_tuple[2])[:-10],
             appuser=data_tuple[3],
             deck=data_tuple[4],
-            participants=data_tuple[5],
+            createdby=data_tuple[5],
+            updatedby=data_tuple[6],
+            deleted=data_tuple[7],
+            participants=data_tuple[8],
         )
 
 

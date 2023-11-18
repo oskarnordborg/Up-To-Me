@@ -23,7 +23,7 @@ const ChooseGameDeck = ({
     setRefreshing(true);
     try {
       const response = await fastAPIClient.get(
-        `/deck/?external_id=${inUserId ? inUserId : userId}`
+        `/decks/?external_id=${inUserId ? inUserId : userId}`
       );
       if (!response.error) {
         setDecks(response.decks);

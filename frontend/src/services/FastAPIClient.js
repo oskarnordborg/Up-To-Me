@@ -66,10 +66,11 @@ export default class FastApiClient {
     }
   }
 
-  async put(url) {
+  async put(url, body) {
     try {
       const response = await fetch(`${BACKEND_URL}${url}`, {
         method: "put",
+        body: JSON.stringify(body),
         headers: {
           Accept: "application/json",
           "Content-Type": "application/json",

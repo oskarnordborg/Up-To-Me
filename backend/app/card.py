@@ -46,7 +46,9 @@ async def get_cards(
         query += (" AND " if "WHERE" in query else " WHERE ") + "card_deck.deck = %s "
         params.append(iddeck)
 
-    query += (" AND " if "WHERE" in query else " WHERE ") + "deleted = FALSE "
+    query += (
+        " AND " if "WHERE" in query else " WHERE "
+    ) + "card.deleted = FALSE AND card_deck.deleted = FALSE "
     try:
         with psycopg2.connect(**db_connection_params) as connection:
             cursor = connection.cursor()
@@ -74,9 +76,9 @@ async def create_card(data: CreateCardInput):
 
             idappuser = appuser[0]
             insert_query = sql.SQL(
-                "INSERT INTO card (title, description, appuser, createdby, updatedby) VALUES ({}) RETURNING idcard"
+                "INSERT INTO card (title, description, appuser, updatedby) VALUES ({}) RETURNING idcard"
             ).format(
-                sql.SQL(", ").join([sql.Placeholder()] * 5),
+                sql.SQL(", ").join([sql.Placeholder()] * 4),
             )
 
             cursor.execute(
@@ -88,9 +90,9 @@ async def create_card(data: CreateCardInput):
                 idcard = cursor.fetchone()[0]
 
                 insert_query = sql.SQL(
-                    "INSERT INTO card_deck (card, deck, appuser, createdby, updatedby) VALUES ({})"
+                    "INSERT INTO card_deck (card, deck, appuser, updatedby) VALUES ({})"
                 ).format(
-                    sql.SQL(", ").join([sql.Placeholder()] * 5),
+                    sql.SQL(", ").join([sql.Placeholder()] * 4),
                 )
                 cursor.execute(
                     insert_query, (idcard, data.deck, idappuser, idappuser, idappuser)
@@ -105,9 +107,11 @@ async def create_card(data: CreateCardInput):
 
 
 @router.delete("/card/")
-async def delete_card(idcard: int):
+async def delete_card(idcard: int, external_id: str):
     try:
-        db_connector.delete_object(table="card", idobject=idcard)
+        db_connector.delete_object(
+            table="card", idobject=idcard, external_id=external_id
+        )
 
     except (Exception, psycopg2.Error) as error:
         print("Error connecting to PostgreSQL:", error)

@@ -118,10 +118,9 @@ async def update_common_decks_and_cards(data: DecksAndCardsUpdateInput):
             new_deck_ids = {}
             for deck in data.decks:
                 if deck.iddeck < 0 and deck.created:
-                    # Insert a new deck into the database
                     insert_query = """
-                        INSERT INTO deck (title, description, createdby, updatedby)
-                        VALUES (%s, %s, %s, %s) RETURNING iddeck
+                        INSERT INTO deck (title, description, updatedby)
+                        VALUES (%s, %s, %s) RETURNING iddeck
                     """
                     cursor.execute(
                         insert_query,
@@ -143,23 +142,23 @@ async def update_common_decks_and_cards(data: DecksAndCardsUpdateInput):
             for card in data.cards:
                 if card.idcard < 0 and card.created:
                     insert_query = """
-                        INSERT INTO card (title, description, createdby, updatedby)
-                        VALUES (%s, %s, %s, %s) RETURNING idcard
+                        INSERT INTO card (title, description, updatedby)
+                        VALUES (%s, %s, %s) RETURNING idcard
                     """
                     cursor.execute(
                         insert_query,
-                        (card.title, card.description, idappuser, idappuser),
+                        (card.title, card.description, idappuser),
                     )
                     new_card_id = cursor.fetchone()[0]
 
                     insert_card_deck_query = """
-                        INSERT INTO card_deck (card, deck, createdby, updatedby)
-                        VALUES (%s, %s)
+                        INSERT INTO card_deck (card, deck, updatedby)
+                        VALUES (%s, %s, %s)
                     """
                     card.iddeck = new_deck_ids.get(card.iddeck, card.iddeck)
                     cursor.execute(
                         insert_card_deck_query,
-                        (new_card_id, card.iddeck, idappuser, idappuser),
+                        (new_card_id, card.iddeck, idappuser),
                     )
 
                 elif card.updated:
@@ -174,20 +173,20 @@ async def update_common_decks_and_cards(data: DecksAndCardsUpdateInput):
 
             if data.deletes.cards:
                 delete_card_query = """
-                    Update card SET deleted = TRUE, updatedby = %s
+                    UPDATE card SET deleted = TRUE, updatedby = %s
                     WHERE idcard IN %s
                 """
                 cursor.execute(
-                    delete_card_query, (tuple(data.deletes.cards), idappuser)
+                    delete_card_query, (idappuser, tuple(data.deletes.cards))
                 )
 
             if data.deletes.decks:
                 delete_deck_query = """
-                    Update card SET deleted = TRUE, updatedby = %s
+                    UPDATE deck SET deleted = TRUE, updatedby = %s
                     WHERE iddeck IN %s
                 """
                 cursor.execute(
-                    delete_deck_query, (tuple(data.deletes.decks), idappuser)
+                    delete_deck_query, (idappuser, tuple(data.deletes.decks))
                 )
 
             connection.commit()

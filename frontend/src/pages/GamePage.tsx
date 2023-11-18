@@ -4,14 +4,11 @@ import { useParams } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import { useSwipeable } from "react-swipeable";
 import "./GamePage.css";
-import { Link } from "react-router-dom";
 import { getUserId } from "../components/RequireAuth";
 import GameCardModal from "../components/Cards/GameCardModal";
 import { useNavigate } from "react-router-dom";
 import ConfirmDialog from "../components/ConfirmDialog";
 import FastAPIClient from "../services/FastAPIClient";
-
-const apiUrl = process.env.REACT_APP_API_URL;
 
 export default function GamePage() {
   const { idgame } = useParams();
@@ -37,7 +34,7 @@ export default function GamePage() {
       setShowSlownessMessage(true);
     }, timeoutThreshold);
     try {
-      let url = apiUrl + `/game/${idgame}?external_id=${userId}`;
+      let url = `/game/${idgame}?external_id=${userId}`;
 
       const response = await fastAPIClient.get(url);
       clearTimeout(timeout);
@@ -109,14 +106,10 @@ export default function GamePage() {
   const resignGame = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch(apiUrl + `/game/?idgame=${idgame}`, {
-        method: "delete",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-      });
-      if (response.ok) {
+      const response = await fastAPIClient.delete(
+        `/game/?idgame=${idgame}&external_id=${userId}`
+      );
+      if (!response.error) {
         toast("Game resigned", {
           className: "toast-success",
           autoClose: 1000,
@@ -124,7 +117,7 @@ export default function GamePage() {
         });
         navigate(`/mygames`);
       } else {
-        console.error("Failed to fetch cards data");
+        console.error("Failed to resign game: " + response.error);
       }
     } catch (error) {
       console.error("An error occurred while fetching data:", error);

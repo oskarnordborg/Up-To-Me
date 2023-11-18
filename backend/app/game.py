@@ -162,19 +162,17 @@ async def create_game(data: CreateGameInput):
             data.participants.append(idappuser)
 
             insert_game_query = sql.SQL(
-                "INSERT INTO game (appuser, deck, createdby, updatedby) VALUES (%s, %s, %s, %s) RETURNING idgame"
+                "INSERT INTO game (appuser, deck, updatedby) VALUES (%s, %s, %s) RETURNING idgame"
             )
-            cursor.execute(
-                insert_game_query, (idappuser, data.deck, idappuser, idappuser)
-            )
+            cursor.execute(insert_game_query, (idappuser, data.deck, idappuser))
             idgame = cursor.fetchone()[0]
 
             game_appuser_records = [
-                (idgame, participant, participant == idappuser, idappuser, idappuser)
+                (idgame, participant, participant == idappuser, idappuser)
                 for participant in data.participants
             ]
             insert_game_appuser_query = """
-                INSERT INTO game_appuser (game, appuser, accepted, createdby, updatedby)
+                INSERT INTO game_appuser (game, appuser, accepted, updatedby)
                 VALUES %s
             """
             execute_values(cursor, insert_game_appuser_query, game_appuser_records)
@@ -184,23 +182,23 @@ async def create_game(data: CreateGameInput):
                 FROM card_deck cd
                 LEFT JOIN card c ON cd.card = c.idcard
                 LEFT JOIN appuser a ON cd.appuser = a.idappuser
-                WHERE cd.deleted = FALSE AND c.deleted = FALSE AND a.deleted = FALSE
-                AND cd.appuser IS NULL OR a.external_id = %s
+                WHERE cd.deleted = FALSE AND c.deleted = FALSE
+                AND (cd.appuser IS NULL OR a.external_id = %s) AND cd.deck = %s
             """
-            cursor.execute(select_card_deck_query, (data.external_id,))
+            cursor.execute(select_card_deck_query, (data.external_id, data.deck))
             card_deck_data = cursor.fetchall()
 
             game_cards_data = [
-                (idgame, appuser, False, title, description, idappuser, idappuser)
+                (idgame, appuser, False, title, description, idappuser)
                 for title, description in card_deck_data
                 for appuser in data.participants
             ]
 
             insert_game_card_query = sql.SQL(
                 """
-                INSERT INTO game_card (game, player, wildcard, title, description, createdby, updatedby)
+                INSERT INTO game_card (game, player, wildcard, title, description, updatedby)
                 VALUES %s
-            """
+                """
             )
             execute_values(cursor, insert_game_card_query, game_cards_data)
 
@@ -239,9 +237,11 @@ async def accept_game(data: AcceptGameInput):
 
 
 @router.delete("/game/")
-async def delete_game(idgame: int):
+async def delete_game(idgame: int, external_id: str):
     try:
-        db_connector.delete_object(table="game", idobject=idgame)
+        db_connector.delete_object(
+            table="game", idobject=idgame, external_id=external_id
+        )
 
     except (Exception, psycopg2.Error) as error:
         print("Error connecting to PostgreSQL:", error)

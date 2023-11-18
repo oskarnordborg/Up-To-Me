@@ -71,9 +71,9 @@ async def create_deck(data: CreateDeckInput):
 
             idappuser = appuser[0]
             insert_query = sql.SQL(
-                "INSERT INTO deck (title, description, appuser, createdby, updatedby) VALUES ({}) RETURNING iddeck"
+                "INSERT INTO deck (title, description, appuser, updatedby) VALUES ({}) RETURNING iddeck"
             ).format(
-                sql.SQL(", ").join([sql.Placeholder()] * 5),
+                sql.SQL(", ").join([sql.Placeholder()] * 4),
             )
 
             cursor.execute(
@@ -90,9 +90,11 @@ async def create_deck(data: CreateDeckInput):
 
 
 @router.delete("/deck/")
-async def delete_deck(iddeck: int):
+async def delete_deck(iddeck: int, external_id: str):
     try:
-        db_connector.delete_object(table="deck", idobject=iddeck)
+        db_connector.delete_object(
+            table="deck", idobject=iddeck, external_id=external_id
+        )
 
     except (Exception, psycopg2.Error) as error:
         print("Error connecting to PostgreSQL:", error)
