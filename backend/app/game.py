@@ -178,7 +178,7 @@ async def create_game(data: CreateGameInput):
             execute_values(cursor, insert_game_appuser_query, game_appuser_records)
 
             select_card_deck_query = """
-                SELECT c.title, c.description
+                SELECT c.title, c.description, cd.wildcard
                 FROM card_deck cd
                 LEFT JOIN card c ON cd.card = c.idcard
                 LEFT JOIN appuser a ON cd.appuser = a.idappuser
@@ -189,8 +189,8 @@ async def create_game(data: CreateGameInput):
             card_deck_data = cursor.fetchall()
 
             game_cards_data = [
-                (idgame, appuser, False, title, description, idappuser)
-                for title, description in card_deck_data
+                (idgame, appuser, wildcard, title, description, idappuser)
+                for title, description, wildcard in card_deck_data
                 for appuser in data.participants
             ]
 

@@ -18,7 +18,7 @@ export default function CardModal({ card, close, refreshPage }) {
     setIsLoading(true);
     try {
       const response = await fastAPIClient.delete(
-        `/card/?idcard=${card.idcard}&external_id=${userId}`
+        `/card_deck/?idcard_deck=${card.idcard_deck}&external_id=${userId}`
       );
       if (!response.error) {
         toast("Card deleted, refreshing", {
@@ -26,7 +26,6 @@ export default function CardModal({ card, close, refreshPage }) {
           autoClose: 1000,
           hideProgressBar: true,
         });
-        setIsLoading(false);
         close();
         await refreshPage();
       } else {
@@ -40,12 +39,17 @@ export default function CardModal({ card, close, refreshPage }) {
     } catch (error) {
       console.error("An error occurred while fetching data:", error);
     }
+    setIsLoading(false);
   };
   return (
     <div className="modal-background" onClick={close}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+      <div
+        className={`modal-content ${card.wildcard && "wildcard"}`}
+        onClick={(e) => e.stopPropagation()}
+      >
         <h2>{card.title}</h2>
         <p>{card.description}</p>
+        <p>{card.wildcard ? "Wildcard!" : ""}</p>
         <button className="close-button" onClick={close}>
           X
         </button>

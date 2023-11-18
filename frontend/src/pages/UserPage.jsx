@@ -2,7 +2,6 @@
 // import { useContext } from "react";
 import { useParams } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
-import { jwtDecode } from "jwt-decode";
 import { ToastContainer, toast } from "react-toastify";
 import "./UserPage.css";
 import { getUserId } from "../components/RequireAuth";
@@ -20,9 +19,11 @@ export default function UserPage() {
 
   const fastAPIClient = new FastAPIClient();
   const userId = getUserId();
+  let effectRun = false;
 
   useEffect(() => {
-    if (userId) {
+    if (effectRun === false) {
+      effectRun = true;
       fetchUserInfo(userId);
     }
   }, [userId]);

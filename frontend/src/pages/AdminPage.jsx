@@ -230,6 +230,7 @@ const AdminPage = () => {
               onClick={(e) => toggleCards(e, deck.iddeck)}
             >
               <input
+                className="admin-input"
                 type="text"
                 value={deck.title}
                 onChange={(e) =>
@@ -238,6 +239,7 @@ const AdminPage = () => {
                 placeholder="Enter deck title"
               />
               <input
+                className="admin-input"
                 type="text"
                 value={deck.description}
                 onChange={(e) =>
@@ -246,7 +248,7 @@ const AdminPage = () => {
                 placeholder="Enter deck description"
               />
               <span className="toggle-button">
-                {deck.showCards ? "▲" : "▼"}
+                {deck.showCards ? "🡹" : "🡻"}
               </span>
 
               <button
@@ -262,6 +264,7 @@ const AdminPage = () => {
                   <div key={card.idcard} className="card">
                     <div className="card-input-fields">
                       <input
+                        className="admin-input"
                         type="text"
                         value={card.title}
                         onChange={(e) =>

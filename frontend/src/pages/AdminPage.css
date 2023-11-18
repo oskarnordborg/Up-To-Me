@@ -34,7 +34,7 @@
   justify-content: space-between;
 }
 
-.card input[type="text"] {
+.card .admin-input {
   flex: 1;
   margin-right: 10px;
 }
@@ -44,7 +44,7 @@
   width: 50px;
 }
 
-input[type="text"] {
+.admin-input {
   width: 100%;
   padding: 8px;
   border: 1px solid #ccc;
@@ -57,11 +57,11 @@ input[type="text"] {
   margin-right: 10px;
 }
 
-input[type="text"]:hover {
+.admin-input:hover {
   border-color: #aaa;
 }
 
-input[type="text"]:focus {
+.admin-input:focus {
   outline: none;
   border-color: #007bff;
   box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);

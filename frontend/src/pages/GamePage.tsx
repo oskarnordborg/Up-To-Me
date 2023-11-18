@@ -144,20 +144,13 @@ export default function GamePage() {
   const renderCard = (card: any) => (
     <div
       key={card.idgame_card}
-      className="card-item"
+      className={`card-item ${card.wildcard && "wildcard"}`}
       onClick={() => openCardModal(card)}
     >
       <h3>{card.title}</h3>
       <p>{card.description}</p>
+      <h3>{card.wildcard ? "Wildcard!" : ""}</h3>
       {card.usercard && <div className="user-card-stamp">User card</div>}
-      {showPreview && (
-        <div className="card-preview">
-          <div className="preview-content">
-            <h3>{card.title}</h3>
-            <p>{card.description}</p>
-          </div>
-        </div>
-      )}
     </div>
   );
 
