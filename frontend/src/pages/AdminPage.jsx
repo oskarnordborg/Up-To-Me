@@ -1,17 +1,22 @@
 import React, { useState, useEffect } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import { getUserId } from "../components/RequireAuth";
+import FastAPIClient from "../services/FastAPIClient";
 import "./AdminPage.css";
-
-const apiUrl = process.env.REACT_APP_API_URL;
+import ConfirmDialog from "../components/ConfirmDialog";
 
 const AdminPage = () => {
   const [decks, setDecks] = useState([]);
+  const [deletes, setDeletes] = useState({ decks: [], cards: [] });
   const [newDeckIndex, setNewDeckIndex] = useState(0);
   const [newcardIndex, setNewcardIndex] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
+  const [updateObjects, setUpdateObjects] = useState({});
   const [showSlownessMessage, setShowSlownessMessage] = useState(false);
+  const [showConfirmSaveModal, setShowConfirmSaveModal] = useState(false);
+  const [confirmSaveMessage, setConfirmSaveMessage] = useState(false);
 
+  const fastAPIClient = new FastAPIClient();
   const userId = getUserId();
 
   const fetchDecksAndCards = async () => {
@@ -21,18 +26,43 @@ const AdminPage = () => {
       setShowSlownessMessage(true);
     }, timeoutThreshold);
     try {
-      let url = apiUrl + `/decks/cards?external_id=${userId}`;
+      let url = `/admin/decks/cards?external_id=${userId}`;
 
-      const response = await fetch(url);
+      const resp = await fastAPIClient.get(url);
       clearTimeout(timeout);
-      if (response.ok) {
-        const resp = await response.json();
+      if (resp.error) {
+        console.error("Failed to fetch cards data: ", resp.error);
+        toast("Failed to fetch cards data, " + resp.error, {
+          type: "error",
+          autoClose: 2000,
+          hideProgressBar: true,
+        });
+      } else {
         setDecks(resp.decks);
         setShowSlownessMessage(false);
+      }
+    } catch (error) {
+      console.error("An error occurred while fetching data:", error);
+    }
+    setRefreshing(false);
+  };
+
+  const handleSaveConfirm = async () => {
+    setRefreshing(true);
+    setShowConfirmSaveModal(false);
+    try {
+      updateObjects.external_id = userId;
+      updateObjects.deletes = deletes;
+      const response = await fastAPIClient.post(
+        `/admin/decks/cards`,
+        updateObjects
+      );
+
+      if (!response.error) {
+        fetchDecksAndCards();
+        setUpdateObjects({});
       } else {
-        const message = await response.text();
-        console.error("Failed to fetch cards data", message);
-        toast("Failed to fetch cards data" + message, {
+        toast("Failed to update data: " + response.error, {
           type: "error",
           autoClose: 2000,
           hideProgressBar: true,
@@ -44,6 +74,31 @@ const AdminPage = () => {
     setRefreshing(false);
   };
 
+  const handleSaveCancel = () => {
+    setShowConfirmSaveModal(false);
+  };
+
+  const saveDecksAndCardsClick = async () => {
+    console.log(decks);
+    let updates = { decks: [], cards: [] };
+    decks.forEach((deck) => {
+      if (deck.updated || deck.created) {
+        updates.decks.push(deck);
+      }
+      deck.cards.forEach((card) => {
+        if (card.updated || card.created) {
+          updates.cards.push(card);
+        }
+      });
+    });
+    console.log(updates);
+    setUpdateObjects(updates);
+
+    const confirmMessage = `Are you sure you want to save? ${updates.decks.length} decks and ${updates.cards.length} cards`;
+    setConfirmSaveMessage(confirmMessage);
+    setShowConfirmSaveModal(true);
+  };
+
   useEffect(() => {
     fetchDecksAndCards();
   }, []);
@@ -52,8 +107,6 @@ const AdminPage = () => {
     if (e.target.nodeName === "INPUT" || e.target.nodeName === "BUTTON") {
       return;
     }
-    console.log(iddeck);
-    console.log(decks);
     const updatedDecks = decks.map((deck) =>
       deck.iddeck === iddeck ? { ...deck, showCards: !deck.showCards } : deck
     );
@@ -69,11 +122,22 @@ const AdminPage = () => {
       description: "",
       cards: [],
       showCards: true,
+      created: true,
     };
     setDecks([...decks, newDeck]);
   };
   const removeDeck = (iddeck) => {
-    const updatedDecks = decks.filter((deck) => deck.iddeck !== iddeck);
+    const updatedDecks = decks.filter((deck) => {
+      if (deck.iddeck === iddeck) {
+        if (deck.iddeck > 0) {
+          deletes.decks.push(deck.iddeck);
+          setDeletes(deletes);
+        }
+        return false;
+      } else {
+        return true;
+      }
+    });
     setDecks(updatedDecks);
   };
 
@@ -82,8 +146,10 @@ const AdminPage = () => {
     setNewcardIndex(newcardId);
     const newCard = {
       idcard: newcardId,
+      iddeck: updateDeck.iddeck,
       title: "",
       description: "",
+      created: true,
     };
     const updatedDecks = decks.map((deck) =>
       deck.iddeck === updateDeck.iddeck
@@ -97,7 +163,17 @@ const AdminPage = () => {
       deck.iddeck === iddeck
         ? {
             ...deck,
-            cards: deck.cards.filter((card) => card.idcard !== idcard),
+            cards: deck.cards.filter((card) => {
+              if (card.idcard === idcard) {
+                if (card.idcard > 0) {
+                  deletes.cards.push(card.idcard);
+                  setDeletes(deletes);
+                }
+                return false;
+              } else {
+                return true;
+              }
+            }),
           }
         : deck
     );
@@ -105,7 +181,9 @@ const AdminPage = () => {
   };
   const handleDeckChange = (iddeck, property, value) => {
     const updatedDecks = decks.map((deck) =>
-      deck.iddeck === iddeck ? { ...deck, [property]: value } : deck
+      deck.iddeck === iddeck
+        ? { ...deck, [property]: value, updated: true }
+        : deck
     );
     setDecks(updatedDecks);
   };
@@ -114,13 +192,15 @@ const AdminPage = () => {
     const updatedDecks = decks.map((deck) => {
       if (deck.iddeck === iddeck) {
         const updatedCards = deck.cards.map((card) =>
-          card.idcard === idcard ? { ...card, [property]: value } : card
+          card.idcard === idcard
+            ? { ...card, [property]: value, updated: true }
+            : card
         );
         return { ...deck, cards: updatedCards };
       }
       return deck;
     });
-    console.log(updatedDecks);
+
     setDecks(updatedDecks);
   };
 
@@ -141,93 +221,110 @@ const AdminPage = () => {
   }
 
   return (
-    <div className="admin-container">
-      {decks.map((deck) => (
-        <div key={deck.iddeck} className="deck">
-          <div
-            className="deck-header"
-            onClick={(e) => toggleCards(e, deck.iddeck)}
-          >
-            <input
-              type="text"
-              value={deck.title}
-              onChange={(e) =>
-                handleDeckChange(deck.iddeck, "title", e.target.value)
-              }
-              placeholder="Enter deck title"
-            />
-            <input
-              type="text"
-              value={deck.description}
-              onChange={(e) =>
-                handleDeckChange(deck.iddeck, "description", e.target.value)
-              }
-              placeholder="Enter deck description"
-            />
-            <span className="toggle-button">{deck.showCards ? "▲" : "▼"}</span>
-
-            <button
-              className="admin-delete-button"
-              onClick={() => removeDeck(deck.iddeck)}
+    <>
+      <div className="admin-container">
+        {decks.map((deck) => (
+          <div key={deck.iddeck} className="deck">
+            <div
+              className="deck-header"
+              onClick={(e) => toggleCards(e, deck.iddeck)}
             >
-              X
-            </button>
-          </div>
-          {deck.showCards && (
-            <div className="card-list">
-              {deck.cards.map((card) => (
-                <div key={card.idcard} className="card">
-                  <div className="card-input-fields">
-                    <input
-                      type="text"
-                      value={card.title}
-                      onChange={(e) =>
-                        handleCardChange(
-                          deck.iddeck,
-                          card.idcard,
-                          "title",
-                          e.target.value
-                        )
-                      }
-                      placeholder="Enter card title"
-                    />
+              <input
+                className="admin-input"
+                type="text"
+                value={deck.title}
+                onChange={(e) =>
+                  handleDeckChange(deck.iddeck, "title", e.target.value)
+                }
+                placeholder="Enter deck title"
+              />
+              <input
+                className="admin-input"
+                type="text"
+                value={deck.description}
+                onChange={(e) =>
+                  handleDeckChange(deck.iddeck, "description", e.target.value)
+                }
+                placeholder="Enter deck description"
+              />
+              <span className="toggle-button">
+                {deck.showCards ? "🡹" : "🡻"}
+              </span>
 
-                    <input
-                      type="text"
-                      value={card.description}
-                      onChange={(e) =>
-                        handleCardChange(
-                          deck.iddeck,
-                          card.idcard,
-                          "description",
-                          e.target.value
-                        )
-                      }
-                      placeholder="Enter card description"
-                    />
-                  </div>
-                  <button
-                    className="admin-delete-button"
-                    onClick={() => removeCard(deck.iddeck, card.idcard)}
-                  >
-                    X
-                  </button>
-                </div>
-              ))}
               <button
-                className="admin-create-button"
-                onClick={() => addCard(deck)}
+                className="admin-delete-button"
+                onClick={() => removeDeck(deck.iddeck)}
               >
-                Add Card
+                X
               </button>
             </div>
-          )}
-        </div>
-      ))}
-      <button className="admin-create-button" onClick={addDeck}>
-        Add Deck
+            {deck.showCards && (
+              <div className="card-list">
+                {deck.cards.map((card) => (
+                  <div key={card.idcard} className="card">
+                    <div className="card-input-fields">
+                      <input
+                        className="admin-input"
+                        type="text"
+                        value={card.title}
+                        onChange={(e) =>
+                          handleCardChange(
+                            deck.iddeck,
+                            card.idcard,
+                            "title",
+                            e.target.value
+                          )
+                        }
+                        placeholder="Enter card title"
+                      />
+
+                      <textarea
+                        className="resize-textarea"
+                        placeholder="Enter card description"
+                        value={card.description}
+                        onChange={(e) =>
+                          handleCardChange(
+                            deck.iddeck,
+                            card.idcard,
+                            "description",
+                            e.target.value
+                          )
+                        }
+                      ></textarea>
+                    </div>
+                    <button
+                      className="admin-delete-button"
+                      onClick={() => removeCard(deck.iddeck, card.idcard)}
+                    >
+                      X
+                    </button>
+                  </div>
+                ))}
+                <button
+                  className="admin-create-button"
+                  onClick={() => addCard(deck)}
+                >
+                  Add Card
+                </button>
+              </div>
+            )}
+          </div>
+        ))}
+        <button className="admin-create-deck-button" onClick={addDeck}>
+          Add Deck
+        </button>
+      </div>
+      <button className="admin-save-button" onClick={saveDecksAndCardsClick}>
+        Save All
       </button>
-    </div>
+      <ConfirmDialog
+        message={confirmSaveMessage}
+        onConfirm={handleSaveConfirm}
+        onCancel={handleSaveCancel}
+        showModal={showConfirmSaveModal}
+      />
+      <ToastContainer />
+    </>
   );
 };
 

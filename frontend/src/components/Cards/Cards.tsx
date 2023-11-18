@@ -7,8 +7,7 @@ import "./Cards.css";
 import { Link } from "react-router-dom";
 import { getUserId } from "../RequireAuth";
 import CardModal from "./CardModal";
-
-const apiUrl = process.env.REACT_APP_API_URL;
+import FastAPIClient from "../../services/FastAPIClient";
 
 export default function Cards() {
   const { iddeck, deckTitle } = useParams();
@@ -22,7 +21,9 @@ export default function Cards() {
   const [timer, setTimer] = useState<NodeJS.Timeout | null>(null);
   const [showPreview, setShowPreview] = useState(false);
   const [selectedCard, setSelectedCard] = useState(null);
+  const [isWildcardChecked, setIsWildcardChecked] = useState(false);
 
+  const fastAPIClient = new FastAPIClient();
   const userId = getUserId();
 
   const fetchCards = async () => {
@@ -32,23 +33,21 @@ export default function Cards() {
       setShowSlownessMessage(true);
     }, timeoutThreshold);
     try {
-      let url = apiUrl + `/card/`;
+      let url = `/cards/`;
       if (userId) {
         url += `?external_id=${userId}`;
       }
       if (iddeck) {
         url += (userId ? "&" : "?") + `iddeck=${iddeck}`;
       }
-      const response = await fetch(url);
+      const response = await fastAPIClient.get(url);
       clearTimeout(timeout);
-      if (response.ok) {
-        const resp = await response.json();
-        setCards(resp.cards);
+      if (!response.error) {
+        setCards(response.cards);
         setShowSlownessMessage(false);
       } else {
-        const message = await response.text();
-        console.error("Failed to fetch cards data", message);
-        toast("Failed to fetch cards data" + message, {
+        console.error("Failed to fetch cards data", response.error);
+        toast("Failed to fetch cards data" + response.error, {
           type: "error",
           autoClose: 2000,
           hideProgressBar: true,
@@ -66,21 +65,6 @@ export default function Cards() {
 
   const handleRefresh = async () => {
     await fetchCards();
-  };
-
-  const handleMouseDown = () => {
-    const newTimer = setTimeout(() => {
-      setShowPreview(true);
-    }, 500);
-    setTimer(newTimer);
-  };
-
-  const handleMouseUp = () => {
-    if (timer) {
-      clearTimeout(timer);
-      setTimer(null);
-    }
-    setShowPreview(false);
   };
 
   const swipeHandlers = useSwipeable({
@@ -112,7 +96,7 @@ export default function Cards() {
     if (isLoading) {
       return;
     }
-    if (!title.trim() || !description.trim()) {
+    if (!isWildcardChecked && (!title.trim() || !description.trim())) {
       toast("Please enter both title and description.", {
         type: "error",
         autoClose: 2000,
@@ -123,22 +107,16 @@ export default function Cards() {
     setIsLoading(true);
     try {
       let body: any = {
-        title: title,
-        description: description,
+        title: isWildcardChecked ? "" : title,
+        description: isWildcardChecked ? "" : description,
+        wildcard: isWildcardChecked,
         external_id: userId,
       };
       if (iddeck) {
         body.deck = iddeck;
       }
-      const response = await fetch(apiUrl + "/card/", {
-        method: "post",
-        body: JSON.stringify(body),
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-      });
-      if (response.ok) {
+      const response = await fastAPIClient.post("/card/", body);
+      if (!response.error) {
         toast("Card created, refreshing", {
           className: "toast-success",
           autoClose: 1000,
@@ -149,7 +127,12 @@ export default function Cards() {
         setTitle("");
         setDescription("");
       } else {
-        console.error("Failed to fetch cards data");
+        console.error("Failed to add card: " + response.error);
+        toast("Failed to add card", {
+          className: "toast-error",
+          autoClose: 1000,
+          hideProgressBar: true,
+        });
       }
     } catch (error) {
       console.error("An error occurred while fetching data:", error);
@@ -157,36 +140,26 @@ export default function Cards() {
     setIsLoading(false);
   };
 
-  const handleDeleteCardClick = async (e: any, cardId: number) => {
-    e.preventDefault();
-    if (isLoading) {
-      return;
-    }
-
-    toast("Not implemented.", {
-      type: "error",
-      autoClose: 2000,
-      hideProgressBar: true,
-    });
-
-    setIsLoading(false);
+  const handleCheckboxChange = (event: any) => {
+    setIsWildcardChecked(event.target.checked);
   };
+
   const cardItemStyle = {
     textDecoration: "none",
     color: "inherit",
   };
 
   const renderCard = (card: any) => (
-    <Link
-      key={card.idcard}
-      to={`/cards/${card.idcard}/${card.title}`}
-      className="card-item"
+    <div
+      key={card.idcard_deck}
+      className={`card-item ${card.wildcard && "wildcard"}`}
       style={cardItemStyle}
       onClick={() => openCardModal(card)}
     >
       <div>
         <h3>{card.title}</h3>
         <p>{card.description}</p>
+        <p>{card.wildcard ? "Wildcard!" : ""}</p>
         {card.usercard && <div className="user-card-stamp">User card</div>}
         {showPreview && (
           <div className="card-preview">
@@ -197,7 +170,7 @@ export default function Cards() {
           </div>
         )}
       </div>
-    </Link>
+    </div>
   );
 
   if (refreshing) {
@@ -229,36 +202,49 @@ export default function Cards() {
       )}
       <div className="carousel-slide">
         <h3>New Card</h3>
-        <div className="input-container">
-          <label className="new-card-label" htmlFor="title">
-            Title
-          </label>
+        <label className="checkbox-container">
           <input
-            type="text"
-            id="title"
-            autoComplete="off"
-            onChange={(e) => setTitle(e.target.value)}
-            value={title}
-            required
-            aria-describedby="uidnote"
-            className="input-field"
+            type="checkbox"
+            checked={isWildcardChecked}
+            onChange={handleCheckboxChange}
           />
-        </div>
-        <div className="input-container">
-          <label className="new-card-label" htmlFor="description">
-            Description
-          </label>
-          <input
-            type="text"
-            id="description"
-            autoComplete="off"
-            onChange={(e) => setDescription(e.target.value)}
-            value={description}
-            required
-            aria-describedby="uidnote"
-            className="input-field"
-          />
-        </div>
+          <span className="checkmark"></span>
+          Wildcard!
+        </label>
+        {!isWildcardChecked && (
+          <>
+            <div className="input-container">
+              <label className="new-card-label" htmlFor="title">
+                Title
+              </label>
+              <input
+                type="text"
+                id="title"
+                autoComplete="off"
+                onChange={(e) => setTitle(e.target.value)}
+                value={title}
+                required
+                aria-describedby="uidnote"
+                className="input-field"
+              />
+            </div>
+            <div className="input-container">
+              <label className="new-card-label" htmlFor="description">
+                Description
+              </label>
+              <input
+                type="text"
+                id="description"
+                autoComplete="off"
+                onChange={(e) => setDescription(e.target.value)}
+                value={description}
+                required
+                aria-describedby="uidnote"
+                className="input-field"
+              />
+            </div>
+          </>
+        )}
         <button
           className={`create-button ${isLoading ? "loading" : ""}`}
           onClick={handleAddCardClick}

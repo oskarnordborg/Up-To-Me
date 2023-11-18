@@ -2,11 +2,10 @@
 // import { useContext } from "react";
 import { useParams } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
-import { jwtDecode } from "jwt-decode";
 import { ToastContainer, toast } from "react-toastify";
 import "./UserPage.css";
-
-const apiUrl = process.env.REACT_APP_API_URL;
+import { getUserId } from "../components/RequireAuth";
+import FastAPIClient from "../services/FastAPIClient";
 
 export default function UserPage() {
   // const { auth } = useContext(AuthContext);
@@ -14,32 +13,34 @@ export default function UserPage() {
   const userRef = useRef();
   const firstNameRef = useRef();
   const lastNameRef = useRef();
-  const [userId, setUserId] = useState("");
   const [email, setEmail] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
 
+  const fastAPIClient = new FastAPIClient();
+  const userId = getUserId();
+  let effectRun = false;
+
   useEffect(() => {
-    const jwt = localStorage.getItem("jwt");
-    if (jwt) {
-      const decodedToken = jwtDecode(jwt);
-      setUserId(decodedToken.user_id);
-      fetchUserInfo(decodedToken.user_id);
+    if (effectRun === false) {
+      effectRun = true;
+      fetchUserInfo(userId);
     }
-  }, []);
+  }, [userId]);
 
   const fetchUserInfo = async (userId) => {
     try {
-      const response = await fetch(apiUrl + `/appuser/?external_id=${userId}`);
-      if (response.ok) {
-        const resp = await response.json();
-        if (resp) {
-          setEmail(resp.email || startemail);
-          setFirstName(resp.firstname || "");
-          setLastName(resp.lastname || "");
+      const response = await fastAPIClient.get(
+        `/appuser/?external_id=${userId}`
+      );
+      if (!response.error) {
+        if (response) {
+          setEmail(response.email || startemail);
+          setFirstName(response.firstname || "");
+          setLastName(response.lastname || "");
         }
       } else {
-        console.error("Failed to fetch user data");
+        console.error("Failed to fetch user data: " + response.error);
       }
     } catch (error) {
       console.error("An error occurred while fetching data:", error);
@@ -48,20 +49,13 @@ export default function UserPage() {
 
   const updateAppUser = async () => {
     try {
-      const response = await fetch(apiUrl + `/appuser/`, {
-        method: "put",
-        body: JSON.stringify({
-          userid: userId,
-          email: email,
-          firstname: firstName,
-          lastname: lastName,
-        }),
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
+      const response = await fastAPIClient.put(`/appuser/`, {
+        userid: userId,
+        email: email,
+        firstname: firstName,
+        lastname: lastName,
       });
-      if (response.ok) {
+      if (!response.error) {
         toast("Updated info", {
           type: "success",
           autoClose: 1000,
