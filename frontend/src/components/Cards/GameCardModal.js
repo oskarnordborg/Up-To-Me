@@ -1,11 +1,21 @@
 import React, { useState } from "react";
 import "./GameCardModal.css";
 import { ToastContainer, toast } from "react-toastify";
+import FastAPIClient from "../../services/FastAPIClient";
+import { getUserId } from "../RequireAuth";
 
-export default function GameCardModal({ card, close, refreshPage }) {
+export default function GameCardModal({
+  card,
+  participants,
+  closeModal,
+  refreshPage,
+}) {
   const [isLoading, setIsLoading] = useState(false);
   const [title, setTitle] = useState(card.title);
   const [description, setDescription] = useState(card.description);
+
+  const fastAPIClient = new FastAPIClient();
+  const userId = getUserId();
 
   const handlePlayCardClick = async (e) => {
     e.preventDefault();
@@ -22,34 +32,37 @@ export default function GameCardModal({ card, close, refreshPage }) {
     }
     setIsLoading(true);
     try {
-      toast(`Not implemented, would play: ` + title + ", " + description, {
-        autoClose: 2000,
+      const response = await fastAPIClient.put("/game/play-card/", {
+        external_id: userId,
+        idgame_card: card.idgame_card,
+        performers: participants,
       });
-      // const response = await fetch(apiUrl + `/card/?idcard=${card.idcard}`, {
-      //   method: "delete",
-      //   headers: {
-      //     Accept: "application/json",
-      //     "Content-Type": "application/json",
-      //   },
-      // });
-      // if (response.ok) {
-      //   toast("Card deleted, refreshing", {
-      //     className: "toast-success",
-      //     autoClose: 1000,
-      //     hideProgressBar: true,
-      //   });
-      //   setIsLoading(false);
-      //   close();
-      //   await refreshPage();
-      // } else {
-      //   console.error("Failed to fetch cards data");
-      // }
+      if (!response.error) {
+        toast("Card played!", {
+          className: "toast-success",
+          autoClose: 1000,
+          hideProgressBar: true,
+        });
+        setIsLoading(false);
+        setTitle("");
+        setDescription("");
+        closeModal();
+        refreshPage();
+      } else {
+        console.error("Failed to add card: " + response.error);
+        toast("Failed to add card", {
+          className: "toast-error",
+          autoClose: 1000,
+          hideProgressBar: true,
+        });
+      }
     } catch (error) {
       console.error("An error occurred while fetching data:", error);
     }
+    setIsLoading(false);
   };
   return (
-    <div className="game-modal-background" onClick={close}>
+    <div className="game-modal-background" onClick={closeModal}>
       <div
         className={`game-modal-content ${card.wildcard && "wildcard"}`}
         onClick={(e) => e.stopPropagation()}
@@ -90,14 +103,16 @@ export default function GameCardModal({ card, close, refreshPage }) {
             <p>{card.description}</p>
           </>
         )}
-        <button className="close-button" onClick={close}>
+        <button className="close-button" onClick={closeModal}>
           X
         </button>
-        <div>
-          <button onClick={handlePlayCardClick} className="play-card-button">
-            Play Card
-          </button>
-        </div>
+        {card.playable && (
+          <div>
+            <button onClick={handlePlayCardClick} className="play-card-button">
+              Play Card
+            </button>
+          </div>
+        )}
       </div>
       <ToastContainer />
     </div>

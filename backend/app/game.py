@@ -24,9 +24,17 @@ class AcceptGameInput(BaseModel):
     game: int
 
 
+class PlayCardInput(BaseModel):
+    external_id: str
+    idgame_card: int
+    performers: List[str]
+
+
 class GameInfoResponse(BaseModel):
     game: Game
-    cards: List[GameCard]
+    cards_in_play: List
+    cards_to_play: List[GameCard]
+    cards_received: List[GameCard]
 
 
 @router.get("/games/")
@@ -114,15 +122,55 @@ async def get_game(idgame: int, external_id: str):
             if not game_data:
                 raise HTTPException(status_code=404, detail="Game not found")
 
-            query_game_cards = """
-                SELECT gc.*
+            query_game_cards_to_play = """
+                SELECT gc.*, (player.external_id = %s) AS mycard
                 FROM game_card gc
                 INNER JOIN appuser player ON gc.player = player.idappuser
                 WHERE gc.deleted = FALSE AND player.deleted = FALSE
-                AND gc.game = %s AND player.external_id = %s
+                AND gc.played_time IS NULL AND gc.game = %s AND player.external_id = %s
             """
-            cursor.execute(query_game_cards, (idgame, external_id))
-            game_cards_data = cursor.fetchall()
+            cursor.execute(query_game_cards_to_play, (external_id, idgame, external_id))
+            game_cards_to_play_data = cursor.fetchall()
+
+            game_cards_to_play = [
+                GameCard.from_tuple(card_data) for card_data in game_cards_to_play_data
+            ]
+
+            query_game_cards_received = """
+                SELECT gc.*, (player.external_id = %s) AS mycard
+                FROM game_card gc
+                INNER JOIN appuser performer ON gc.performer = performer.idappuser
+                LEFT JOIN appuser player ON gc.player = player.idappuser
+                WHERE gc.deleted = FALSE AND performer.deleted = FALSE
+                AND gc.game = %s AND performer.external_id = %s
+            """
+            cursor.execute(
+                query_game_cards_received, (external_id, idgame, external_id)
+            )
+            game_cards_received_data = cursor.fetchall()
+
+            game_cards_received = [
+                GameCard.from_tuple(card_data) for card_data in game_cards_received_data
+            ]
+
+            query_game_cards_in_play = """
+                SELECT gc.*, (player.external_id = %s) AS mycard
+                FROM game_card gc
+                LEFT JOIN appuser performer ON gc.performer = performer.idappuser
+                LEFT JOIN appuser player ON gc.player = player.idappuser
+                WHERE gc.deleted = FALSE AND performer.deleted = FALSE
+                AND gc.game = %s AND played_time IS NOT NULL AND finished_time IS NULL
+                AND (performer.external_id = %s OR player.external_id = %s)
+            """
+            cursor.execute(
+                query_game_cards_in_play,
+                (external_id, idgame, external_id, external_id),
+            )
+            game_cards_in_play_data = cursor.fetchall()
+
+            game_cards_in_play = [
+                GameCard.from_tuple(card_data) for card_data in game_cards_in_play_data
+            ]
 
             query_game_appusers = """
                 SELECT email
@@ -136,11 +184,13 @@ async def get_game(idgame: int, external_id: str):
 
             game_data += ([user[0] for user in game_appusers],)
             game = Game.from_tuple(game_data)
-            game_cards = [
-                GameCard.from_tuple(card_data) for card_data in game_cards_data
-            ]
 
-            return GameInfoResponse(game=game, cards=game_cards)
+            return GameInfoResponse(
+                game=game,
+                cards_in_play=game_cards_in_play,
+                cards_to_play=game_cards_to_play,
+                cards_received=game_cards_received,
+            )
 
     except (Exception, psycopg2.Error) as error:
         print("Error connecting to PostgreSQL:", error)
@@ -226,6 +276,35 @@ async def accept_game(data: AcceptGameInput):
             )
             cursor.execute(
                 update_query, (data.external_id, data.external_id, data.game)
+            )
+            connection.commit()
+
+    except (Exception, psycopg2.Error) as error:
+        print("Error connecting to PostgreSQL:", error)
+        raise HTTPException(status_code=500, detail=f"Database error: {str(error)}")
+
+    return {"success": True}
+
+
+@router.put("/game/play-card/")
+async def accept_game(data: PlayCardInput):
+    try:
+        with psycopg2.connect(**db_connection_params) as connection:
+            cursor = connection.cursor()
+            idappuser = db_connector.get_idappuser(cursor, external_id=data.external_id)
+            idperformer = db_connector.get_idappuser_by_email(
+                cursor, email=data.performers[0]
+            )
+
+            update_query = sql.SQL(
+                """
+                UPDATE game_card
+                SET updatedby = %s, played_time = CURRENT_TIMESTAMP, performer = %s
+                WHERE player = %s AND idgame_card = %s and game_card.deleted = FALSE
+                """
+            )
+            cursor.execute(
+                update_query, (idappuser, idperformer, idappuser, data.idgame_card)
             )
             connection.commit()
 

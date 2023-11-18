@@ -12,7 +12,9 @@ import FastAPIClient from "../services/FastAPIClient";
 
 export default function GamePage() {
   const { idgame } = useParams();
-  const [cards, setCards] = useState([]);
+  const [cardsToPlay, setCardsToPlay] = useState([]);
+  const [cardsReceived, setCardsReceived] = useState([]);
+  const [cardsInPlay, setCardsInPlay] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [startY, setStartY] = useState(null);
@@ -40,11 +42,13 @@ export default function GamePage() {
       clearTimeout(timeout);
       if (!response.error) {
         setGameInfo(response.game);
-        setCards(response.cards);
+        setCardsInPlay(response.cards_in_play);
+        setCardsToPlay(response.cards_to_play);
+        setCardsReceived(response.cards_received);
         setShowSlownessMessage(false);
       } else {
-        console.error("Failed to fetch cards data", response.error);
-        toast("Failed to fetch cards data" + response.error, {
+        console.error("Failed to fetch game data", response.error);
+        toast("Failed to fetch game data" + response.error, {
           type: "error",
           autoClose: 2000,
           hideProgressBar: true,
@@ -80,27 +84,13 @@ export default function GamePage() {
     },
   });
 
-  const openCardModal = (card: any) => {
+  const openCardModal = (card: any, playable: boolean = true) => {
+    console.log(card);
     setSelectedCard(card);
   };
 
   const closeCardModal = () => {
     setSelectedCard(null);
-  };
-
-  const handlePlayCardClick = async (e: any, cardId: number) => {
-    e.preventDefault();
-    if (isLoading) {
-      return;
-    }
-
-    toast("Not implemented.", {
-      type: "error",
-      autoClose: 2000,
-      hideProgressBar: true,
-    });
-
-    setIsLoading(false);
   };
 
   const resignGame = async () => {
@@ -141,11 +131,11 @@ export default function GamePage() {
     setShowConfirmResignModal(true);
   };
 
-  const renderCard = (card: any) => (
+  const renderCard = (card: any, playable: boolean = true) => (
     <div
       key={card.idgame_card}
       className={`card-item ${card.wildcard && "wildcard"}`}
-      onClick={() => openCardModal(card)}
+      onClick={() => openCardModal(card, playable)}
     >
       <h3>{card.title}</h3>
       <p>{card.description}</p>
@@ -174,18 +164,30 @@ export default function GamePage() {
     <div className="GamePage-main" {...swipeHandlers}>
       <div>
         <div>Game</div>
-        <div>Started: {gameInfo.createdtime}</div>
+        <div>Invited: {gameInfo.createdtime}</div>
         <div>
           {gameInfo.participants?.map((part: string) => (
             <div key={part}>{part}</div>
           ))}
         </div>
       </div>
-      <div className="cards-grid">{cards.map((card) => renderCard(card))}</div>
+      In Play
+      <div className="cards-grid">
+        {cardsInPlay.map((card) => renderCard(card, false))}
+      </div>
+      To Play
+      <div className="cards-grid">
+        {cardsToPlay.map((card) => renderCard(card, true))}
+      </div>
+      Done
+      <div className="cards-grid done">
+        {cardsReceived.map((card) => renderCard(card, false))}
+      </div>
       {selectedCard && (
         <GameCardModal
           card={selectedCard}
-          close={closeCardModal}
+          participants={gameInfo.participants}
+          closeModal={closeCardModal}
           refreshPage={fetchGameInfo}
         />
       )}

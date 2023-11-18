@@ -10,9 +10,9 @@
 
 .cards-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
-  padding: 20px;
+  grid-template-columns: repeat(3, 2fr);
+  gap: 10px;
+  padding: 10px;
 }
 
 .card-item {
@@ -21,9 +21,12 @@
   border: 1px solid #ccc;
   border-radius: 5px;
   padding: 20px;
-  height: 180px;
+  height: 120px;
   text-align: center;
   box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
+}
+.done .card-item {
+  background-color: #7e7c7c;
 }
 
 .card-item h3 {
