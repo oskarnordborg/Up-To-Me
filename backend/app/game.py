@@ -182,7 +182,7 @@ async def create_game(data: CreateGameInput):
                 FROM card_deck cd
                 LEFT JOIN card c ON cd.card = c.idcard
                 LEFT JOIN appuser a ON cd.appuser = a.idappuser
-                WHERE cd.deleted = FALSE AND c.deleted = FALSE
+                WHERE cd.deleted = FALSE AND (cd.card IS NULL OR c.deleted = FALSE)
                 AND (cd.appuser IS NULL OR a.external_id = %s) AND cd.deck = %s
             """
             cursor.execute(select_card_deck_query, (data.external_id, data.deck))
