@@ -7,8 +7,6 @@ import "./LoginPage.css";
 import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 
-const apiUrl = process.env.REACT_APP_API_URL;
-
 export default function LoginPage() {
   const { startemail } = useParams();
   const userRef = useRef();

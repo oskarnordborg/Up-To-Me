@@ -151,9 +151,11 @@ async def update_appuser(data: AppUserInput):
 
 
 @router.delete("/appuser/")
-async def delete_appuser(idappuser: int):
+async def delete_appuser(idappuser: int, external_id: str):
     try:
-        db_connector.delete_object(table="appuser", idobject=idappuser)
+        db_connector.delete_object(
+            table="appuser", idobject=idappuser, external_id=external_id
+        )
 
     except (Exception, psycopg2.Error) as error:
         print("Error connecting to PostgreSQL:", error)

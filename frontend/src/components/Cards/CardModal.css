@@ -18,6 +18,10 @@
   width: 70%;
   text-align: center;
   position: relative;
+  z-index: 1;
+}
+.modal-content.wildcard {
+  background-color: #fcd7fc;
 }
 
 .modal-content h2 {

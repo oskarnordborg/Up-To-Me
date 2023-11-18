@@ -36,7 +36,7 @@ async def get_games(external_id: str):
         with psycopg2.connect(**db_connection_params) as connection:
             cursor = connection.cursor()
             get_query = sql.SQL(
-                "SELECT email FROM appuser WHERE external_id = %s LIMIT 1"
+                "SELECT email FROM appuser WHERE deleted = FALSE AND external_id = %s LIMIT 1"
             )
             cursor.execute(get_query, (external_id,))
             appuser_email = cursor.fetchone()[0]
@@ -48,7 +48,7 @@ async def get_games(external_id: str):
                 INNER JOIN game_appuser AS ga ON g.idgame = ga.game
                 INNER JOIN appuser AS a ON ga.appuser = a.idappuser
                 INNER JOIN deck AS d ON g.deck = d.iddeck
-                WHERE a.external_id = %s
+                WHERE g.deleted = FALSE AND a.external_id = %s
                 """,
                 (external_id,),
             )
@@ -61,7 +61,7 @@ async def get_games(external_id: str):
                 SELECT ga.game, array_agg(a.email)
                 FROM game_appuser AS ga
                 INNER JOIN appuser AS a ON ga.appuser = a.idappuser
-                WHERE ga.game = ANY(%s)
+                WHERE ga.deleted = FALSE AND a.deleted = FALSE AND ga.game = ANY(%s)
                 GROUP BY ga.game
                 """,
                 (game_ids,),
@@ -106,7 +106,7 @@ async def get_game(idgame: int, external_id: str):
             query_game = """
                 SELECT *
                 FROM game
-                WHERE idgame = %s
+                WHERE deleted = FALSE AND idgame = %s
             """
             cursor.execute(query_game, (idgame,))
             game_data = cursor.fetchone()
@@ -118,16 +118,18 @@ async def get_game(idgame: int, external_id: str):
                 SELECT gc.*
                 FROM game_card gc
                 INNER JOIN appuser player ON gc.player = player.idappuser
-                WHERE gc.game = %s AND player.external_id = %s
+                WHERE gc.deleted = FALSE AND player.deleted = FALSE
+                AND gc.game = %s AND player.external_id = %s
             """
             cursor.execute(query_game_cards, (idgame, external_id))
             game_cards_data = cursor.fetchall()
 
             query_game_appusers = """
                 SELECT email
-                FROM appuser
-                INNER JOIN game_appuser ON appuser.idappuser = game_appuser.appuser
-                WHERE game_appuser.game = %s AND appuser.external_id != %s
+                FROM appuser a
+                INNER JOIN game_appuser ga ON a.idappuser = ga.appuser
+                WHERE a.deleted = FALSE AND ga.deleted = FALSE
+                AND ga.game = %s AND a.external_id != %s
             """
             cursor.execute(query_game_appusers, (idgame, external_id))
             game_appusers = cursor.fetchall()
@@ -152,7 +154,7 @@ async def create_game(data: CreateGameInput):
             cursor = connection.cursor()
 
             get_query = sql.SQL(
-                "SELECT idappuser FROM appuser WHERE external_id = %s LIMIT 1"
+                "SELECT idappuser FROM appuser WHERE deleted = FALSE AND external_id = %s LIMIT 1"
             )
             cursor.execute(get_query, (data.external_id,))
             idappuser = cursor.fetchone()[0]
@@ -160,42 +162,43 @@ async def create_game(data: CreateGameInput):
             data.participants.append(idappuser)
 
             insert_game_query = sql.SQL(
-                "INSERT INTO game (appuser, deck) VALUES (%s, %s) RETURNING idgame"
+                "INSERT INTO game (appuser, deck, updatedby) VALUES (%s, %s, %s) RETURNING idgame"
             )
-            cursor.execute(insert_game_query, (idappuser, data.deck))
+            cursor.execute(insert_game_query, (idappuser, data.deck, idappuser))
             idgame = cursor.fetchone()[0]
 
             game_appuser_records = [
-                (idgame, participant, participant == idappuser)
+                (idgame, participant, participant == idappuser, idappuser)
                 for participant in data.participants
             ]
             insert_game_appuser_query = """
-                INSERT INTO game_appuser (game, appuser, accepted)
+                INSERT INTO game_appuser (game, appuser, accepted, updatedby)
                 VALUES %s
             """
             execute_values(cursor, insert_game_appuser_query, game_appuser_records)
 
             select_card_deck_query = """
-                SELECT c.title, c.description
+                SELECT c.title, c.description, cd.wildcard
                 FROM card_deck cd
                 LEFT JOIN card c ON cd.card = c.idcard
                 LEFT JOIN appuser a ON cd.appuser = a.idappuser
-                WHERE cd.appuser IS NULL OR a.external_id = %s
+                WHERE cd.deleted = FALSE AND c.deleted = FALSE
+                AND (cd.appuser IS NULL OR a.external_id = %s) AND cd.deck = %s
             """
-            cursor.execute(select_card_deck_query, (data.external_id,))
+            cursor.execute(select_card_deck_query, (data.external_id, data.deck))
             card_deck_data = cursor.fetchall()
 
             game_cards_data = [
-                (idgame, appuser, False, title, description)
-                for title, description in card_deck_data
+                (idgame, appuser, wildcard, title, description, idappuser)
+                for title, description, wildcard in card_deck_data
                 for appuser in data.participants
             ]
 
             insert_game_card_query = sql.SQL(
                 """
-                INSERT INTO game_card (game, player, wildcard, title, description)
+                INSERT INTO game_card (game, player, wildcard, title, description, updatedby)
                 VALUES %s
-            """
+                """
             )
             execute_values(cursor, insert_game_card_query, game_cards_data)
 
@@ -216,12 +219,14 @@ async def accept_game(data: AcceptGameInput):
             update_query = sql.SQL(
                 """
                 UPDATE game_appuser
-                SET accepted = TRUE
+                SET accepted = TRUE, updatedby = (SELECT idappuser FROM appuser WHERE external_id = %s)
                 WHERE game_appuser.appuser = (SELECT idappuser FROM appuser WHERE external_id = %s)
                 AND game_appuser.game = %s;
                 """
             )
-            cursor.execute(update_query, (data.external_id, data.game))
+            cursor.execute(
+                update_query, (data.external_id, data.external_id, data.game)
+            )
             connection.commit()
 
     except (Exception, psycopg2.Error) as error:
@@ -232,9 +237,11 @@ async def accept_game(data: AcceptGameInput):
 
 
 @router.delete("/game/")
-async def delete_game(idgame: int):
+async def delete_game(idgame: int, external_id: str):
     try:
-        db_connector.delete_object(table="game", idobject=idgame)
+        db_connector.delete_object(
+            table="game", idobject=idgame, external_id=external_id
+        )
 
     except (Exception, psycopg2.Error) as error:
         print("Error connecting to PostgreSQL:", error)

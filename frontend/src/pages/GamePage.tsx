@@ -4,13 +4,11 @@ import { useParams } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import { useSwipeable } from "react-swipeable";
 import "./GamePage.css";
-import { Link } from "react-router-dom";
 import { getUserId } from "../components/RequireAuth";
 import GameCardModal from "../components/Cards/GameCardModal";
 import { useNavigate } from "react-router-dom";
 import ConfirmDialog from "../components/ConfirmDialog";
-
-const apiUrl = process.env.REACT_APP_API_URL;
+import FastAPIClient from "../services/FastAPIClient";
 
 export default function GamePage() {
   const { idgame } = useParams();
@@ -26,6 +24,7 @@ export default function GamePage() {
   const [showConfirmResignModal, setShowConfirmResignModal] = useState(false);
   const navigate = useNavigate();
 
+  const fastAPIClient = new FastAPIClient();
   const userId = getUserId();
 
   const fetchGameInfo = async () => {
@@ -35,19 +34,17 @@ export default function GamePage() {
       setShowSlownessMessage(true);
     }, timeoutThreshold);
     try {
-      let url = apiUrl + `/game/${idgame}?external_id=${userId}`;
+      let url = `/game/${idgame}?external_id=${userId}`;
 
-      const response = await fetch(url);
+      const response = await fastAPIClient.get(url);
       clearTimeout(timeout);
-      if (response.ok) {
-        const resp = await response.json();
-        setGameInfo(resp.game);
-        setCards(resp.cards);
+      if (!response.error) {
+        setGameInfo(response.game);
+        setCards(response.cards);
         setShowSlownessMessage(false);
       } else {
-        const message = await response.text();
-        console.error("Failed to fetch cards data", message);
-        toast("Failed to fetch cards data" + message, {
+        console.error("Failed to fetch cards data", response.error);
+        toast("Failed to fetch cards data" + response.error, {
           type: "error",
           autoClose: 2000,
           hideProgressBar: true,
@@ -109,14 +106,10 @@ export default function GamePage() {
   const resignGame = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch(apiUrl + `/game/?idgame=${idgame}`, {
-        method: "delete",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-      });
-      if (response.ok) {
+      const response = await fastAPIClient.delete(
+        `/game/?idgame=${idgame}&external_id=${userId}`
+      );
+      if (!response.error) {
         toast("Game resigned", {
           className: "toast-success",
           autoClose: 1000,
@@ -124,7 +117,7 @@ export default function GamePage() {
         });
         navigate(`/mygames`);
       } else {
-        console.error("Failed to fetch cards data");
+        console.error("Failed to resign game: " + response.error);
       }
     } catch (error) {
       console.error("An error occurred while fetching data:", error);
@@ -151,20 +144,13 @@ export default function GamePage() {
   const renderCard = (card: any) => (
     <div
       key={card.idgame_card}
-      className="card-item"
+      className={`card-item ${card.wildcard && "wildcard"}`}
       onClick={() => openCardModal(card)}
     >
       <h3>{card.title}</h3>
       <p>{card.description}</p>
+      <h3>{card.wildcard ? "Wildcard!" : ""}</h3>
       {card.usercard && <div className="user-card-stamp">User card</div>}
-      {showPreview && (
-        <div className="card-preview">
-          <div className="preview-content">
-            <h3>{card.title}</h3>
-            <p>{card.description}</p>
-          </div>
-        </div>
-      )}
     </div>
   );
 

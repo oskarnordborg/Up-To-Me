@@ -1,3 +1,4 @@
+import os
 import uuid
 
 import psycopg2
@@ -5,6 +6,7 @@ from app import db_connector
 from app.helpers import jwt_helper
 from fastapi import APIRouter, Body, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import Response
 from passwordless import (
     AliasSchema,
     CredentialSchema,
@@ -25,8 +27,9 @@ from passwordless import (
 )
 from psycopg2 import sql
 from pydantic import BaseModel
+from starlette.requests import Request
 
-from . import appuser, card, db_connection_params, deck, game
+from . import admin, appuser, card, db_connection_params, deck, game
 from .passwordless_login.passwordless_bp import PasswordlessApiBlueprint
 
 app = FastAPI()
@@ -36,18 +39,33 @@ origins = [
     "localhost:3000",
 ]
 
+
+async def api_key_validation(request: Request, call_next):
+    if request.method == "OPTIONS":
+        return await call_next(request)
+
+    api_key = request.headers.get("x-api-key", None)
+    if not api_key or api_key != os.environ["X_API_KEY"]:
+        raise HTTPException(status_code=401, detail="Invalid API key")
+
+    response = await call_next(request)
+    return response
+
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["*"],
+    allow_headers=["x-api-key"],
 )
+app.middleware("http")(api_key_validation)
 
 app.include_router(card.router)
 app.include_router(deck.router)
 app.include_router(appuser.router)
 app.include_router(game.router)
+app.include_router(admin.router)
 
 api_bp = PasswordlessApiBlueprint(app)
 

@@ -5,9 +5,8 @@ import { jwtDecode } from "jwt-decode";
 import ChooseGameDeck from "../components/Decks/ChooseGameDeck";
 import "./StartGamePage.css";
 import { useNavigate } from "react-router-dom";
-
+import { getUserId } from "../components/RequireAuth";
 import { ToastContainer, toast } from "react-toastify";
-const apiUrl = process.env.REACT_APP_API_URL;
 
 export default function StartGamePage() {
   const userRef = useRef();
@@ -17,7 +16,6 @@ export default function StartGamePage() {
   const [success, setSuccess] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [searchedChar, setSearchedChar] = useState("");
-  const [userId, setUserId] = useState("");
   const [isLoading, setIsLoading] = useState("");
   const [suggestions, setSuggestions] = useState([]);
   const [filteredSuggestions, setFilteredSuggestions] = useState([]);
@@ -25,16 +23,14 @@ export default function StartGamePage() {
   const [selectedDeck, setSelectedDeck] = useState(null);
   const navigate = useNavigate();
 
+  const fastAPIClient = new FastAPIClient();
+  const userId = getUserId();
+
   const handleDeckSelect = (deckId) => {
     setSelectedDeck(deckId);
   };
 
   useEffect(() => {
-    const jwt = localStorage.getItem("jwt");
-    if (jwt) {
-      const decodedToken = jwtDecode(jwt);
-      setUserId(decodedToken.user_id);
-    }
     document.addEventListener("click", handleClickOutside);
     return () => {
       document.removeEventListener("click", handleClickOutside);
@@ -63,19 +59,12 @@ export default function StartGamePage() {
     }
     setIsLoading(true);
     try {
-      const response = await fetch(apiUrl + "/game/", {
-        method: "post",
-        body: JSON.stringify({
-          external_id: userId,
-          deck: selectedDeck,
-          participants: selectedParticipants.map((item) => item.idappuser),
-        }),
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
+      const response = await fastAPIClient.post("/game/", {
+        external_id: userId,
+        deck: selectedDeck,
+        participants: selectedParticipants.map((item) => item.idappuser),
       });
-      if (response.ok) {
+      if (!response.error) {
         toast("Game created!", {
           className: "toast-success",
           autoClose: 1000,
@@ -86,7 +75,12 @@ export default function StartGamePage() {
         }, 2500);
         setIsLoading(false);
       } else {
-        console.error("Failed to fetch cards data");
+        console.error("Failed to start game: " + response.error);
+        toast("Game created!", {
+          className: "toast-error",
+          autoClose: 1000,
+          hideProgressBar: true,
+        });
       }
     } catch (error) {
       console.error("An error occurred while fetching data:", error);
@@ -98,27 +92,24 @@ export default function StartGamePage() {
     console.log("Call");
     try {
       setIsLoading(true);
-      const response = await fetch(
-        apiUrl + `/appuser/search?term=${searchTerm}`,
-        {
-          method: "get",
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json",
-          },
-        }
+      const response = await fastAPIClient.get(
+        `/appuser/search?term=${searchTerm}`
       );
-      if (response.ok) {
-        const resp = await response.json();
-        setSuggestions(resp.appusers || []);
-        if (!resp.appusers) {
+      if (!response.error) {
+        setSuggestions(response.appusers || []);
+        if (!response.appusers) {
           const suggestionsList = document.getElementById("suggestions");
           suggestionsList.style.display = "none";
         }
         setIsLoading(false);
-        return resp.appusers || [];
+        return response.appusers || [];
       } else {
-        console.error("Failed to fetch cards data");
+        console.error("Failed to search");
+        toast("Failed to search: " + response.error, {
+          className: "toast-error",
+          autoClose: 1000,
+          hideProgressBar: true,
+        });
       }
     } catch (error) {
       console.error("An error occurred while fetching data:", error);
