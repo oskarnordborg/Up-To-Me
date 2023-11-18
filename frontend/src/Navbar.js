@@ -35,10 +35,10 @@ class Navbar extends React.Component {
           <div className="bar"></div>
         </div>
         <button className="navigation-button" onClick={this.goBack}>
-          <span>&#11164;</span>
+          {"<"}
         </button>
         <button className="navigation-button" onClick={this.goForward}>
-          <span>&#11166;</span>
+          {">"}
         </button>
         <ul className="nav-links">
           {userId ? (
