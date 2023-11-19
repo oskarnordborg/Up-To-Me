@@ -7,6 +7,7 @@ import { getUserId } from "../RequireAuth";
 export default function GameCardModal({
   card,
   participants,
+  started,
   closeModal,
   refreshPage,
 }) {
@@ -22,6 +23,14 @@ export default function GameCardModal({
     if (isLoading) {
       return;
     }
+    if (!started) {
+      toast("Game not started, wait for all participants to accept.", {
+        type: "error",
+        autoClose: 2000,
+        hideProgressBar: true,
+      });
+      return;
+    }
     if (!title.trim() || !description.trim()) {
       toast("Please enter both title and description.", {
         type: "error",
@@ -32,11 +41,16 @@ export default function GameCardModal({
     }
     setIsLoading(true);
     try {
-      const response = await fastAPIClient.put("/game/play-card/", {
+      let body = {
         external_id: userId,
         idgame_card: card.idgame_card,
         performers: participants,
-      });
+      };
+      if (card.wildcard) {
+        body.title = title;
+        body.description = description;
+      }
+      const response = await fastAPIClient.put("/game/play-card/", body);
       if (!response.error) {
         toast("Card played!", {
           className: "toast-success",
@@ -65,6 +79,14 @@ export default function GameCardModal({
   const handleConfirmCardClick = async (e) => {
     e.preventDefault();
     if (isLoading) {
+      return;
+    }
+    if (!started) {
+      toast("Game not started, wait for all perticipants to accept.", {
+        type: "error",
+        autoClose: 2000,
+        hideProgressBar: true,
+      });
       return;
     }
     setIsLoading(true);
@@ -104,7 +126,7 @@ export default function GameCardModal({
         }`}
         onClick={(e) => e.stopPropagation()}
       >
-        {card.wildcard ? (
+        {card.wildcard && card.played_time === "" ? (
           <>
             <div className="input-container">
               <label className="new-card-label" htmlFor="title">
@@ -138,6 +160,10 @@ export default function GameCardModal({
           <>
             <h2>{card.title}</h2>
             <p>{card.description}</p>
+            {card.played_time !== "" && <div>Played: {card.played_time}</div>}
+            {card.finished_time !== "" && (
+              <div>Finished: {card.finished_time}</div>
+            )}
           </>
         )}
         <button className="close-button" onClick={closeModal}>
@@ -152,7 +178,7 @@ export default function GameCardModal({
             >
               {isLoading ? (
                 <>
-                  <div className="small spinner"></div> Playing Card...
+                  <div className="small button-spinner"></div> Playing Card...
                 </>
               ) : (
                 <>Play Card</>
@@ -169,7 +195,8 @@ export default function GameCardModal({
             >
               {isLoading ? (
                 <>
-                  <div className="small spinner"></div> Marking as done...
+                  <div className="small button-spinner"></div> Marking as
+                  done...
                 </>
               ) : (
                 <>Mark as done</>

@@ -27,12 +27,14 @@
 }
 
 .start-game-button {
+  position: fixed;
   background-color: #288b21;
   color: white;
   border: none;
-  margin-top: 150px;
   padding: 10px 20px;
   border-radius: 5px;
+  bottom: 20px;
+  right: 20px;
   cursor: pointer;
   font-size: 16px;
 }
@@ -62,6 +64,7 @@ ul {
 
 .remove-selected {
   color: red;
+  font-size: 24px;
 }
 
 ul.suggestions {
@@ -80,7 +83,7 @@ ul.suggestions {
   padding-bottom: 10px;
 }
 
-.spinner.small {
+.spinner.search {
   position: absolute;
   top: 25%;
   right: 10px;
@@ -88,5 +91,19 @@ ul.suggestions {
   margin-right: 10px;
   width: 15px;
   height: 15px;
-  float: left;
+  float: right;
+}
+
+.selected-items {
+  padding-bottom: 100px;
+  padding-left: 10px;
+  text-align: left;
+}
+
+.selected-items ul {
+  padding-left: 10px;
+}
+
+.selected-items li {
+  padding-bottom: 10px;
 }

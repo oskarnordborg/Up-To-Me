@@ -84,11 +84,11 @@ export default function StartGamePage() {
     setIsLoading(false);
   };
 
-  const searchMembers = async (e) => {
+  const searchMembers = async (term) => {
     try {
       setIsLoading(true);
       const response = await fastAPIClient.get(
-        `/appuser/search?term=${searchTerm}`
+        `/appuser/search?term=${term}&external_id=${userId}`
       );
       if (!response.error) {
         setSuggestions(response.appusers || []);
@@ -124,11 +124,11 @@ export default function StartGamePage() {
     let sugg = suggestions;
     if (searchTerm[0] !== searchedChar) {
       setSearchedChar(searchTerm[0]);
-      sugg = await searchMembers();
+      sugg = await searchMembers(searchTerm[0]);
     }
 
     const updatedSuggestions = sugg.filter((suggestion) =>
-      suggestion.email.startsWith(searchTerm)
+      suggestion.email.toLowerCase().startsWith(searchTerm.toLowerCase())
     );
     setFilteredSuggestions(updatedSuggestions);
   };
@@ -184,7 +184,7 @@ export default function StartGamePage() {
               aria-describedby="uidnote"
               className="input-field"
             />
-            {isLoading && <div className="spinner small"></div>}
+            {isLoading && <div className="spinner search"></div>}
           </div>
           <ul className="suggestions" id="suggestions" ref={suggestionsRef}>
             {filteredSuggestions.map((suggestion, index) => (

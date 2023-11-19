@@ -27,6 +27,9 @@ class AcceptGameInput(BaseModel):
 class PlayCardInput(BaseModel):
     external_id: str
     idgame_card: int
+    title: str = ""
+    description: str = ""
+    external_id: str
     performers: List[str]
 
 
@@ -114,8 +117,6 @@ async def get_game(idgame: int, external_id: str):
     try:
         with psycopg2.connect(**db_connection_params) as connection:
             cursor = connection.cursor()
-            # TODO: make sure the external_id has access
-
             query_game = """
                 SELECT *
                 FROM game
@@ -126,6 +127,20 @@ async def get_game(idgame: int, external_id: str):
 
             if not game_data:
                 raise HTTPException(status_code=404, detail="Game not found")
+
+            get_query = """
+                SELECT ga.accepted
+                FROM appuser a
+                INNER JOIN game_appuser ga ON a.idappuser = ga.appuser
+                WHERE a.deleted = FALSE AND ga.deleted = FALSE
+                AND ga.game = %s AND a.external_id = %s
+            """
+            cursor.execute(get_query, (idgame, external_id))
+            appuser = cursor.fetchone()
+
+            if not appuser:
+                raise HTTPException(status_code=401, detail="User not in game")
+            appuser_accepted = appuser[0]
 
             query_game_cards_to_play = """
                 SELECT gc.*, (player.external_id = %s) AS mycard
@@ -142,7 +157,8 @@ async def get_game(idgame: int, external_id: str):
             ]
 
             query_game_cards_done = """
-                SELECT gc.*, (player.external_id = %s) AS mycard
+                SELECT gc.*, (player.external_id = %s) AS mycard,
+                CONCAT(performer.firstname, ' ', LEFT(performer.lastname, 1))
                 FROM game_card gc
                 INNER JOIN appuser performer ON gc.performer = performer.idappuser
                 LEFT JOIN appuser player ON gc.player = player.idappuser
@@ -161,7 +177,8 @@ async def get_game(idgame: int, external_id: str):
             ]
 
             query_game_cards_in_play = """
-                SELECT gc.*, (player.external_id = %s) AS mycard
+                SELECT gc.*, (player.external_id = %s) AS mycard,
+                CONCAT(performer.firstname, ' ', LEFT(performer.lastname, 1))
                 FROM game_card gc
                 LEFT JOIN appuser performer ON gc.performer = performer.idappuser
                 LEFT JOIN appuser player ON gc.player = player.idappuser
@@ -180,7 +197,7 @@ async def get_game(idgame: int, external_id: str):
             ]
 
             query_game_appusers = """
-                SELECT email
+                SELECT email, CONCAT(firstname, ' ', lastname), ga.accepted
                 FROM appuser a
                 INNER JOIN game_appuser ga ON a.idappuser = ga.appuser
                 WHERE a.deleted = FALSE AND ga.deleted = FALSE
@@ -189,9 +206,15 @@ async def get_game(idgame: int, external_id: str):
             cursor.execute(query_game_appusers, (idgame, external_id))
             game_appusers = cursor.fetchall()
 
-            game_data += ([user[0] for user in game_appusers],)
+            game_data += (
+                {
+                    user[0]: {"name": user[1], "accepted": user[2]}
+                    for user in game_appusers
+                },
+            )
             game = Game.from_tuple(game_data)
 
+            game.started = all([part.accepted for part in game.participants.values()])
             return GameInfoResponse(
                 game=game,
                 cards_in_play=game_cards_in_play,
@@ -235,7 +258,7 @@ async def create_game(data: CreateGameInput):
             execute_values(cursor, insert_game_appuser_query, game_appuser_records)
 
             select_card_deck_query = """
-                SELECT c.title, c.description, cd.wildcard
+                SELECT COALESCE(c.title, ''), COALESCE(c.description, ''), cd.wildcard
                 FROM card_deck cd
                 LEFT JOIN card c ON cd.card = c.idcard
                 LEFT JOIN appuser a ON cd.appuser = a.idappuser
@@ -294,7 +317,7 @@ async def accept_game(data: AcceptGameInput):
 
 
 @router.put("/game/play-card/")
-async def accept_game(data: PlayCardInput):
+async def play_card(data: PlayCardInput):
     try:
         with psycopg2.connect(**db_connection_params) as connection:
             cursor = connection.cursor()
@@ -306,12 +329,22 @@ async def accept_game(data: PlayCardInput):
             update_query = sql.SQL(
                 """
                 UPDATE game_card
-                SET updatedby = %s, played_time = CURRENT_TIMESTAMP, performer = %s
+                SET updatedby = %s, played_time = CURRENT_TIMESTAMP, performer = %s,
+                title = CASE WHEN wildcard = TRUE THEN %s ELSE title END,
+                description = CASE WHEN wildcard = TRUE THEN %s ELSE description END
                 WHERE player = %s AND idgame_card = %s and game_card.deleted = FALSE
                 """
             )
             cursor.execute(
-                update_query, (idappuser, idperformer, idappuser, data.idgame_card)
+                update_query,
+                (
+                    idappuser,
+                    idperformer,
+                    data.title,
+                    data.description,
+                    idappuser,
+                    data.idgame_card,
+                ),
             )
             connection.commit()
 

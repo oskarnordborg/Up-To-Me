@@ -26,17 +26,6 @@
   color: #d9d9d9;
 }
 
-.start-game-button {
-  background-color: #288b21;
-  color: white;
-  border: none;
-  margin-top: 150px;
-  padding: 10px 20px;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 16px;
-}
-
 .need-register {
   color: #d9d9d9;
 }

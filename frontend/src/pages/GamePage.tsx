@@ -137,12 +137,24 @@ export default function GamePage() {
   const renderCard = (card: any, playable: boolean = true) => (
     <div
       key={card.idgame_card}
-      className={`game-card-item ${card.wildcard && "wildcard"}`}
+      className={`game-card-item ${card.wildcard ? "wildcard" : ""}`}
       onClick={() => openCardModal(card, playable)}
     >
       <h3>{card.title}</h3>
       <h3>{card.wildcard ? "Wildcard!" : ""}</h3>
-      <p>{card.mycard ? "You" : "Not You"}</p>
+      <div className="who-played-mark">
+        {!playable && card.mycard
+          ? card.performer_name
+          : card.finished_time
+          ? "You"
+          : ""}
+      </div>
+      <div className="who-played-mark">
+        {!playable &&
+          !card.mycard &&
+          card.performer &&
+          (!card.finished_time ? "Take Action" : "")}
+      </div>
     </div>
   );
 
@@ -168,9 +180,13 @@ export default function GamePage() {
         <div>Game</div>
         <div>Invited: {gameInfo.createdtime}</div>
         <div>
-          {gameInfo.participants?.map((part: string) => (
-            <div key={part}>{part}</div>
-          ))}
+          {gameInfo.participants &&
+            Object.keys(gameInfo.participants).map((email: string) => (
+              <div key={email}>
+                {gameInfo.participants[email].name}{" "}
+                {gameInfo.participants[email].accepted ? " ✓" : " - invited"}
+              </div>
+            ))}
         </div>
       </div>
       In Play
@@ -189,6 +205,7 @@ export default function GamePage() {
         <GameCardModal
           card={selectedCard}
           participants={gameInfo.participants}
+          started={gameInfo.started}
           closeModal={closeCardModal}
           refreshPage={fetchGameInfo}
         />
@@ -206,7 +223,7 @@ export default function GamePage() {
       >
         {isLoading ? (
           <>
-            <div className="small spinner"></div> Resigning...
+            <span className="small spinner"></span> Resigning...
           </>
         ) : (
           "Resign"
