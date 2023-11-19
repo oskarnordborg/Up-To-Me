@@ -61,10 +61,47 @@ export default function GameCardModal({
     }
     setIsLoading(false);
   };
+
+  const handleConfirmCardClick = async (e) => {
+    e.preventDefault();
+    if (isLoading) {
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const response = await fastAPIClient.put("/game/confirm-card/", {
+        external_id: userId,
+        idgame_card: card.idgame_card,
+      });
+      if (!response.error) {
+        toast("Card marked as done!", {
+          className: "toast-success",
+          autoClose: 1000,
+          hideProgressBar: true,
+        });
+        setIsLoading(false);
+        closeModal();
+        refreshPage();
+      } else {
+        console.error("Failed to mark card as done: " + response.error);
+        toast("Failed to mark card as done", {
+          className: "toast-error",
+          autoClose: 1000,
+          hideProgressBar: true,
+        });
+      }
+    } catch (error) {
+      console.error("An error occurred while fetching data:", error);
+    }
+    setIsLoading(false);
+  };
+
   return (
     <div className="game-modal-background" onClick={closeModal}>
       <div
-        className={`game-modal-content ${card.wildcard && "wildcard"}`}
+        className={`game-modal-content ${card.wildcard && "wildcard"} ${
+          card.finished_time && "finished"
+        }`}
         onClick={(e) => e.stopPropagation()}
       >
         {card.wildcard ? (
@@ -110,6 +147,16 @@ export default function GameCardModal({
           <div>
             <button onClick={handlePlayCardClick} className="play-card-button">
               Play Card
+            </button>
+          </div>
+        )}
+        {!card.playable && card.mycard && card.finished_time === "" && (
+          <div>
+            <button
+              onClick={handleConfirmCardClick}
+              className="confirm-card-button"
+            >
+              Mark as done
             </button>
           </div>
         )}

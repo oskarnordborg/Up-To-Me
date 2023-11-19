@@ -26,17 +26,17 @@
   box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
 }
 .done .card-item {
-  background-color: #7e7c7c;
+  background-color: #9f9f9f;
 }
 
 .card-item h3 {
-  font-size: 16px;
+  font-size: 12px;
   margin: 0;
   color: #333;
 }
 
 .card-item p {
-  font-size: 16px;
+  font-size: 12px;
   color: #666;
 }
 

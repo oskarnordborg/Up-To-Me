@@ -13,7 +13,7 @@ import FastAPIClient from "../services/FastAPIClient";
 export default function GamePage() {
   const { idgame } = useParams();
   const [cardsToPlay, setCardsToPlay] = useState([]);
-  const [cardsReceived, setCardsReceived] = useState([]);
+  const [cardsDone, setCardsDone] = useState([]);
   const [cardsInPlay, setCardsInPlay] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -44,7 +44,7 @@ export default function GamePage() {
         setGameInfo(response.game);
         setCardsInPlay(response.cards_in_play);
         setCardsToPlay(response.cards_to_play);
-        setCardsReceived(response.cards_received);
+        setCardsDone(response.cards_done);
         setShowSlownessMessage(false);
       } else {
         console.error("Failed to fetch game data", response.error);
@@ -85,7 +85,7 @@ export default function GamePage() {
   });
 
   const openCardModal = (card: any, playable: boolean = true) => {
-    console.log(card);
+    card.playable = playable;
     setSelectedCard(card);
   };
 
@@ -138,9 +138,8 @@ export default function GamePage() {
       onClick={() => openCardModal(card, playable)}
     >
       <h3>{card.title}</h3>
-      <p>{card.description}</p>
       <h3>{card.wildcard ? "Wildcard!" : ""}</h3>
-      {card.usercard && <div className="user-card-stamp">User card</div>}
+      <p>{card.mycard ? "You" : "Not You"}</p>
     </div>
   );
 
@@ -181,7 +180,7 @@ export default function GamePage() {
       </div>
       Done
       <div className="cards-grid done">
-        {cardsReceived.map((card) => renderCard(card, false))}
+        {cardsDone.map((card) => renderCard(card, false))}
       </div>
       {selectedCard && (
         <GameCardModal
