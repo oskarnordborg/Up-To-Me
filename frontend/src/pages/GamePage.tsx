@@ -134,7 +134,7 @@ export default function GamePage() {
   const renderCard = (card: any, playable: boolean = true) => (
     <div
       key={card.idgame_card}
-      className={`card-item ${card.wildcard && "wildcard"}`}
+      className={`game-card-item ${card.wildcard && "wildcard"}`}
       onClick={() => openCardModal(card, playable)}
     >
       <h3>{card.title}</h3>
@@ -171,15 +171,15 @@ export default function GamePage() {
         </div>
       </div>
       In Play
-      <div className="cards-grid">
+      <div className="game-cards-grid">
         {cardsInPlay.map((card) => renderCard(card, false))}
       </div>
       To Play
-      <div className="cards-grid">
+      <div className="game-cards-grid">
         {cardsToPlay.map((card) => renderCard(card, true))}
       </div>
       Done
-      <div className="cards-grid done">
+      <div className="game-cards-grid done">
         {cardsDone.map((card) => renderCard(card, false))}
       </div>
       {selectedCard && (

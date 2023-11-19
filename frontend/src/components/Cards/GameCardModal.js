@@ -145,8 +145,18 @@ export default function GameCardModal({
         </button>
         {card.playable && (
           <div>
-            <button onClick={handlePlayCardClick} className="play-card-button">
-              Play Card
+            <button
+              onClick={handlePlayCardClick}
+              className="play-card-button"
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <>
+                  <div className="small spinner"></div> Playing Card...
+                </>
+              ) : (
+                <>Play Card</>
+              )}
             </button>
           </div>
         )}
@@ -155,8 +165,15 @@ export default function GameCardModal({
             <button
               onClick={handleConfirmCardClick}
               className="confirm-card-button"
+              disabled={isLoading}
             >
-              Mark as done
+              {isLoading ? (
+                <>
+                  <div className="small spinner"></div> Marking as done...
+                </>
+              ) : (
+                <>Mark as done</>
+              )}
             </button>
           </div>
         )}
