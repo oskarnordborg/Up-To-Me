@@ -44,7 +44,7 @@ export default function GameCardModal({
       let body = {
         external_id: userId,
         idgame_card: card.idgame_card,
-        performers: participants,
+        performers: participants ? Object.keys(participants) : [],
       };
       if (card.wildcard) {
         body.title = title;
@@ -52,9 +52,9 @@ export default function GameCardModal({
       }
       const response = await fastAPIClient.put("/game/play-card/", body);
       if (!response.error) {
-        toast("Card played!", {
+        toast("Card played! moving it", {
           className: "toast-success",
-          autoClose: 1000,
+          autoClose: 2000,
           hideProgressBar: true,
         });
         setIsLoading(false);
@@ -96,9 +96,9 @@ export default function GameCardModal({
         idgame_card: card.idgame_card,
       });
       if (!response.error) {
-        toast("Card marked as done!", {
-          className: "toast-success",
-          autoClose: 1000,
+        toast("Card marked as done! moving it", {
+          className: "success",
+          autoClose: 2000,
           hideProgressBar: true,
         });
         setIsLoading(false);

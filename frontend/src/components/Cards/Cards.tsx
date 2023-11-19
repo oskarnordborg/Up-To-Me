@@ -25,7 +25,6 @@ export default function Cards() {
   let madeInitialCall = false;
 
   const fetchCards = async () => {
-    setRefreshing(true);
     const timeoutThreshold = 3000;
     const timeout = setTimeout(() => {
       setShowSlownessMessage(true);
@@ -62,6 +61,7 @@ export default function Cards() {
       return;
     }
     madeInitialCall = true;
+    setRefreshing(true);
     fetchCards();
   }, [madeInitialCall]);
 
@@ -125,9 +125,10 @@ export default function Cards() {
           hideProgressBar: true,
         });
         setIsLoading(false);
-        await fetchCards();
         setTitle("");
         setDescription("");
+        setIsWildcardChecked(false);
+        fetchCards();
       } else {
         console.error("Failed to add card: " + response.error);
         toast("Failed to add card", {

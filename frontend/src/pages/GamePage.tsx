@@ -29,7 +29,6 @@ export default function GamePage() {
   let madeInitialCall = false;
 
   const fetchGameInfo = async () => {
-    setRefreshing(true);
     const timeoutThreshold = 3000;
     const timeout = setTimeout(() => {
       setShowSlownessMessage(true);
@@ -64,6 +63,7 @@ export default function GamePage() {
       return;
     }
     madeInitialCall = true;
+    setRefreshing(true);
     fetchGameInfo();
   }, [madeInitialCall]);
 

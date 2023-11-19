@@ -20,7 +20,6 @@ export default function Decks() {
   let madeInitialCall = false;
 
   const fetchDecks = async () => {
-    setRefreshing(true);
     const timeoutThreshold = 3000;
     const timeout = setTimeout(() => {
       setShowSlownessMessage(true);
@@ -49,6 +48,7 @@ export default function Decks() {
       return;
     }
     madeInitialCall = true;
+    setRefreshing(true);
     fetchDecks();
   }, [madeInitialCall]);
 
@@ -93,15 +93,15 @@ export default function Decks() {
         external_id: userId,
       });
       if (!response.error) {
-        toast("Card created, refreshing", {
+        toast("Deck created, refreshing", {
           className: "toast-success",
           autoClose: 1000,
           hideProgressBar: true,
         });
         setIsLoading(false);
-        await fetchDecks();
         setTitle("");
         setDescription("");
+        fetchDecks();
       } else {
         console.error("Failed to add deck");
         toast("Failed to add deck: " + response.error, {
