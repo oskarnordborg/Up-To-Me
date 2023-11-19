@@ -1,5 +1,3 @@
-// import AuthContext from "../context/AuthProvider";
-// import { useContext } from "react";
 import { useParams } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
@@ -8,7 +6,6 @@ import { getUserId } from "../components/RequireAuth";
 import FastAPIClient from "../services/FastAPIClient";
 
 export default function UserPage() {
-  // const { auth } = useContext(AuthContext);
   const { startemail } = useParams();
   const userRef = useRef();
   const firstNameRef = useRef();
@@ -19,14 +16,15 @@ export default function UserPage() {
 
   const fastAPIClient = new FastAPIClient();
   const userId = getUserId();
-  let effectRun = false;
+  let madeInitialCall = false;
 
   useEffect(() => {
-    if (effectRun === false) {
-      effectRun = true;
-      fetchUserInfo(userId);
+    if (madeInitialCall) {
+      return;
     }
-  }, [userId]);
+    madeInitialCall = true;
+    fetchUserInfo(userId);
+  }, [madeInitialCall]);
 
   const fetchUserInfo = async (userId) => {
     try {

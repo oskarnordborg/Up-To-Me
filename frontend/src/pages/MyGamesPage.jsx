@@ -1,12 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { jwtDecode } from "jwt-decode";
 import { ToastContainer, toast } from "react-toastify";
 import { getUserId } from "../components/RequireAuth";
 import { Link } from "react-router-dom";
 import "./MyGamesPage.css";
 import FastAPIClient from "../services/FastAPIClient";
-
-const apiUrl = process.env.REACT_APP_API_URL;
 
 export default function MyGamesPage() {
   const [games, setGames] = useState([]);
@@ -15,10 +12,15 @@ export default function MyGamesPage() {
 
   const fastAPIClient = new FastAPIClient();
   const userId = getUserId();
+  let madeInitialCall = false;
 
   useEffect(() => {
+    if (madeInitialCall) {
+      return;
+    }
+    madeInitialCall = true;
     fetchGames(userId);
-  }, []);
+  }, [madeInitialCall]);
 
   const fetchGames = async (userId) => {
     setRefreshing(true);

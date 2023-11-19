@@ -59,16 +59,3 @@
   cursor: pointer;
   font-size: 16px;
 }
-
-.deck-delete-button {
-  position: relative;
-  bottom: 10px;
-  right: 10px;
-  background-color: #cdcdcd;
-  color: rgb(142, 142, 142);
-  border: none;
-  padding: 10px 20px;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 12px;
-}

@@ -18,6 +18,7 @@ const AdminPage = () => {
 
   const fastAPIClient = new FastAPIClient();
   const userId = getUserId();
+  let madeInitialCall = false;
 
   const fetchDecksAndCards = async () => {
     setRefreshing(true);
@@ -79,7 +80,6 @@ const AdminPage = () => {
   };
 
   const saveDecksAndCardsClick = async () => {
-    console.log(decks);
     let updates = { decks: [], cards: [] };
     decks.forEach((deck) => {
       if (deck.updated || deck.created) {
@@ -91,7 +91,7 @@ const AdminPage = () => {
         }
       });
     });
-    console.log(updates);
+
     setUpdateObjects(updates);
 
     const confirmMessage = `Are you sure you want to save? ${updates.decks.length} decks and ${updates.cards.length} cards`;
@@ -100,8 +100,12 @@ const AdminPage = () => {
   };
 
   useEffect(() => {
+    if (madeInitialCall) {
+      return;
+    }
+    madeInitialCall = true;
     fetchDecksAndCards();
-  }, []);
+  }, [madeInitialCall]);
 
   const toggleCards = (e, iddeck) => {
     if (e.target.nodeName === "INPUT" || e.target.nodeName === "BUTTON") {

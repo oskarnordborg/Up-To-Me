@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import { useSwipeable } from "react-swipeable";
-import { jwtDecode } from "jwt-decode";
+import { getUserId } from "../RequireAuth";
 import "./ChooseGameDeck.css";
 import FastAPIClient from "../../services/FastAPIClient";
 
@@ -11,13 +11,13 @@ const ChooseGameDeck = ({
   onSelectDeck: (deckId: number) => void;
 }): JSX.Element => {
   const [decks, setDecks] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [startY, setStartY] = useState(null);
   const [selectedDeck, setSelectedDeck] = useState(null);
-  const [userId, setUserId] = useState("");
 
   const fastAPIClient = new FastAPIClient();
+  const userId = getUserId();
+  let madeInitialCall = false;
 
   const fetchDecks = async (inUserId: string = "") => {
     setRefreshing(true);
@@ -42,14 +42,12 @@ const ChooseGameDeck = ({
   };
 
   useEffect(() => {
-    const jwt = localStorage.getItem("jwt");
-    if (jwt) {
-      const decodedToken: any = jwtDecode(jwt);
-      setUserId(decodedToken.user_id);
-      fetchDecks(decodedToken.user_id);
+    if (madeInitialCall) {
       return;
     }
-  }, []);
+    madeInitialCall = true;
+    fetchDecks(userId);
+  }, [madeInitialCall]);
 
   const handleRefresh = async () => {
     await fetchDecks();

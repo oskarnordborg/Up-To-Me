@@ -20,14 +20,13 @@ export default function GamePage() {
   const [startY, setStartY] = useState(null);
   const [gameInfo, setGameInfo]: [any, any] = useState("");
   const [showSlownessMessage, setShowSlownessMessage] = useState(false);
-  const [timer, setTimer] = useState<NodeJS.Timeout | null>(null);
-  const [showPreview, setShowPreview] = useState(false);
   const [selectedCard, setSelectedCard] = useState(null);
   const [showConfirmResignModal, setShowConfirmResignModal] = useState(false);
   const navigate = useNavigate();
 
   const fastAPIClient = new FastAPIClient();
   const userId = getUserId();
+  let madeInitialCall = false;
 
   const fetchGameInfo = async () => {
     setRefreshing(true);
@@ -61,8 +60,12 @@ export default function GamePage() {
   };
 
   useEffect(() => {
+    if (madeInitialCall) {
+      return;
+    }
+    madeInitialCall = true;
     fetchGameInfo();
-  }, []);
+  }, [madeInitialCall]);
 
   const handleRefresh = async () => {
     await fetchGameInfo();

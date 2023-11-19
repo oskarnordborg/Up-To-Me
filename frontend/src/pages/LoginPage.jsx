@@ -11,7 +11,6 @@ export default function LoginPage() {
   const { startemail } = useParams();
   const userRef = useRef();
   const errRef = useRef();
-  const [errMsg, setErrMsg] = useState("");
   const [success, setSuccess] = useState(false);
   const { setAuth } = useContext(authContext);
   const [email, setEmail] = useState("");
@@ -22,7 +21,7 @@ export default function LoginPage() {
     if (startemail) {
       setEmail(startemail);
     }
-  }, []);
+  }, [startemail]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -65,13 +64,6 @@ export default function LoginPage() {
         </section>
       ) : (
         <section>
-          <p
-            ref={errRef}
-            className={`error-message ${errMsg ? "visible" : "hidden"}`}
-            aria-live="assertive"
-          >
-            {errMsg}
-          </p>
           <h1 className="sign-in-heading">Sign In</h1>
           <div className="input-container">
             <label htmlFor="email">Email</label>

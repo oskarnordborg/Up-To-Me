@@ -106,6 +106,18 @@
   font-size: 12px;
 }
 
+.deck-delete-button {
+  background-color: #b00000;
+  color: white;
+  border: none;
+  margin-top: 150px;
+  margin-bottom: 50px;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
 .card-preview {
   position: absolute;
   top: 100%;

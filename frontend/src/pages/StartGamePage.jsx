@@ -1,7 +1,5 @@
-import { useContext, useEffect, useRef, useState } from "react";
-import authContext from "../context/AuthProvider";
+import { useEffect, useRef, useState } from "react";
 import FastAPIClient from "../services/FastAPIClient";
-import { jwtDecode } from "jwt-decode";
 import ChooseGameDeck from "../components/Decks/ChooseGameDeck";
 import "./StartGamePage.css";
 import { useNavigate } from "react-router-dom";
@@ -9,11 +7,9 @@ import { getUserId } from "../components/RequireAuth";
 import { ToastContainer, toast } from "react-toastify";
 
 export default function StartGamePage() {
-  const userRef = useRef();
   const suggestionsRef = useRef(null);
   const errRef = useRef();
   const [errMsg, setErrMsg] = useState("");
-  const [success, setSuccess] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [searchedChar, setSearchedChar] = useState("");
   const [isLoading, setIsLoading] = useState("");
@@ -89,7 +85,6 @@ export default function StartGamePage() {
   };
 
   const searchMembers = async (e) => {
-    console.log("Call");
     try {
       setIsLoading(true);
       const response = await fastAPIClient.get(
