@@ -14,14 +14,12 @@ export default function Decks() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [showSlownessMessage, setShowSlownessMessage] = useState(false);
-  const [timer, setTimer] = useState<NodeJS.Timeout | null>(null);
-  const [showPreview, setShowPreview] = useState(false);
 
   const fastAPIClient = new FastAPIClient();
   const userId = getUserId();
+  let madeInitialCall = false;
 
   const fetchDecks = async () => {
-    setRefreshing(true);
     const timeoutThreshold = 3000;
     const timeout = setTimeout(() => {
       setShowSlownessMessage(true);
@@ -46,26 +44,16 @@ export default function Decks() {
   };
 
   useEffect(() => {
+    if (madeInitialCall) {
+      return;
+    }
+    madeInitialCall = true;
+    setRefreshing(true);
     fetchDecks();
-  }, []);
+  }, [madeInitialCall]);
 
   const handleRefresh = async () => {
     await fetchDecks();
-  };
-
-  const handleMouseDown = () => {
-    const newTimer = setTimeout(() => {
-      setShowPreview(true);
-    }, 500);
-    setTimer(newTimer);
-  };
-
-  const handleMouseUp = () => {
-    if (timer) {
-      clearTimeout(timer);
-      setTimer(null);
-    }
-    setShowPreview(false);
   };
 
   const swipeHandlers = useSwipeable({
@@ -105,15 +93,15 @@ export default function Decks() {
         external_id: userId,
       });
       if (!response.error) {
-        toast("Card created, refreshing", {
+        toast("Deck created, refreshing", {
           className: "toast-success",
           autoClose: 1000,
           hideProgressBar: true,
         });
         setIsLoading(false);
-        await fetchDecks();
         setTitle("");
         setDescription("");
+        fetchDecks();
       } else {
         console.error("Failed to add deck");
         toast("Failed to add deck: " + response.error, {
@@ -128,20 +116,6 @@ export default function Decks() {
     setIsLoading(false);
   };
 
-  const handleDeleteDeckClick = async (e: any, deckId: number) => {
-    e.preventDefault();
-    if (isLoading) {
-      return;
-    }
-
-    toast("Not implemented.", {
-      type: "error",
-      autoClose: 2000,
-      hideProgressBar: true,
-    });
-
-    setIsLoading(false);
-  };
   const deckItemStyle = {
     textDecoration: "none",
     color: "inherit",
@@ -153,21 +127,11 @@ export default function Decks() {
       to={`/cards/${deck.iddeck}/${deck.title}`}
       className="deck-item"
       style={deckItemStyle}
-      onMouseDown={handleMouseDown}
-      onMouseUp={handleMouseUp}
     >
       <div>
         <h3>{deck.title}</h3>
         <p>{deck.description}</p>
         {deck.userdeck && <div className="user-deck-stamp">User deck</div>}
-        {showPreview && (
-          <div className="deck-preview">
-            <div className="preview-content">
-              <h3>{deck.title}</h3>
-              <p>{deck.description}</p>
-            </div>
-          </div>
-        )}
       </div>
     </Link>
   );

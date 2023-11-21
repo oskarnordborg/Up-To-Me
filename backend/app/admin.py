@@ -1,9 +1,6 @@
-from typing import Optional
-
 import psycopg2
-from app import card, db_connector
 from app.api_classes import CardDeckInfo
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException
 from psycopg2 import sql
 from pydantic import BaseModel
 
@@ -114,6 +111,7 @@ async def update_common_decks_and_cards(data: DecksAndCardsUpdateInput):
             appuser = cursor.fetchone()
             if appuser[0] is False:
                 raise HTTPException(status_code=401, detail="You are not authorized")
+
             idappuser = appuser[1]
             new_deck_ids = {}
             for deck in data.decks:
@@ -136,7 +134,7 @@ async def update_common_decks_and_cards(data: DecksAndCardsUpdateInput):
                     """
                     cursor.execute(
                         update_query,
-                        (deck.title, deck.description, deck.iddeck, idappuser),
+                        (deck.title, deck.description, idappuser, deck.iddeck),
                     )
 
             for card in data.cards:
@@ -168,7 +166,7 @@ async def update_common_decks_and_cards(data: DecksAndCardsUpdateInput):
                     """
                     cursor.execute(
                         update_query,
-                        (card.title, card.description, card.idcard, idappuser),
+                        (card.title, card.description, idappuser, card.idcard),
                     )
 
             if data.deletes.cards:

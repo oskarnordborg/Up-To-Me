@@ -79,15 +79,18 @@ async def get_appuser(external_id: str):
 
 
 @router.get("/appuser/search")
-async def search_appuser(term: str):
+async def search_appuser(term: str, external_id: str):
     try:
         with psycopg2.connect(**db_connection_params) as connection:
             cursor = connection.cursor()
-            get_query = sql.SQL(
-                "SELECT idappuser, email FROM appuser WHERE email ILIKE {}"
-            ).format(sql.Literal(f"{term}%"))
+            db_connector.get_idappuser(cursor, external_id=external_id)
 
-            cursor.execute(get_query)
+            get_query = sql.SQL(
+                "SELECT idappuser, email FROM appuser WHERE email ILIKE %s "
+                "AND external_id != %s"
+            )
+
+            cursor.execute(get_query, (f"{term}%", external_id))
             appusers = cursor.fetchall()
 
     except (Exception, psycopg2.Error) as error:

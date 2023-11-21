@@ -26,3 +26,29 @@ def delete_object(table: str, idobject: int, external_id: int):
 
         cursor.execute(delete_query, (idappuser, idobject))
         connection.commit()
+
+
+def get_idappuser(cursor, external_id: str):
+    get_query = sql.SQL(
+        "SELECT idappuser FROM appuser WHERE deleted = FALSE AND external_id = %s LIMIT 1"
+    )
+    cursor.execute(get_query, (external_id,))
+    appuser = cursor.fetchone()
+
+    if not appuser:
+        raise HTTPException(status_code=422, detail="User not found")
+
+    return appuser[0]
+
+
+def get_idappuser_by_email(cursor, email: str):
+    get_query = sql.SQL(
+        "SELECT idappuser FROM appuser WHERE deleted = FALSE AND email = %s LIMIT 1"
+    )
+    cursor.execute(get_query, (email,))
+    appuser = cursor.fetchone()
+
+    if not appuser:
+        raise HTTPException(status_code=422, detail="User not found")
+
+    return appuser[0]

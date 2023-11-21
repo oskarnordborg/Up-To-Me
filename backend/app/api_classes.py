@@ -1,6 +1,11 @@
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from pydantic import BaseModel
+
+
+class GameParticipant(BaseModel):
+    name: str
+    accepted: bool
 
 
 class Game(BaseModel):
@@ -9,7 +14,8 @@ class Game(BaseModel):
     updatedtime: str
     appuser: int
     deck: int
-    participants: Optional[List[str]]
+    participants: Optional[Dict[str, GameParticipant]]
+    started: bool = False
 
     @classmethod
     def from_tuple(cls, data_tuple):
@@ -38,6 +44,12 @@ class GameCard(BaseModel):
     description: str
     played_time: str
     finished_time: str
+    card: Optional[int]
+    createdby: str
+    updatedby: str
+    deleted: bool = False
+    mycard: bool = False
+    performer_name: str = ""
 
     @classmethod
     def from_tuple(cls, data_tuple):
@@ -53,6 +65,12 @@ class GameCard(BaseModel):
             description=data_tuple[8],
             played_time=str(data_tuple[9])[:-10],
             finished_time=str(data_tuple[10])[:-10],
+            card=data_tuple[11],
+            createdby=str(data_tuple[12])[:-10],
+            updatedby=str(data_tuple[13])[:-10],
+            deleted=data_tuple[14],
+            mycard=data_tuple[15],
+            performer_name=data_tuple[16] if len(data_tuple) > 16 else "",
         )
 
 

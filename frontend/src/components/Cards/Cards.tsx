@@ -4,7 +4,6 @@ import { useParams } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import { useSwipeable } from "react-swipeable";
 import "./Cards.css";
-import { Link } from "react-router-dom";
 import { getUserId } from "../RequireAuth";
 import CardModal from "./CardModal";
 import FastAPIClient from "../../services/FastAPIClient";
@@ -18,16 +17,14 @@ export default function Cards() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [showSlownessMessage, setShowSlownessMessage] = useState(false);
-  const [timer, setTimer] = useState<NodeJS.Timeout | null>(null);
-  const [showPreview, setShowPreview] = useState(false);
   const [selectedCard, setSelectedCard] = useState(null);
   const [isWildcardChecked, setIsWildcardChecked] = useState(false);
 
   const fastAPIClient = new FastAPIClient();
   const userId = getUserId();
+  let madeInitialCall = false;
 
   const fetchCards = async () => {
-    setRefreshing(true);
     const timeoutThreshold = 3000;
     const timeout = setTimeout(() => {
       setShowSlownessMessage(true);
@@ -60,8 +57,13 @@ export default function Cards() {
   };
 
   useEffect(() => {
+    if (madeInitialCall) {
+      return;
+    }
+    madeInitialCall = true;
+    setRefreshing(true);
     fetchCards();
-  }, []);
+  }, [madeInitialCall]);
 
   const handleRefresh = async () => {
     await fetchCards();
@@ -123,9 +125,10 @@ export default function Cards() {
           hideProgressBar: true,
         });
         setIsLoading(false);
-        await fetchCards();
         setTitle("");
         setDescription("");
+        setIsWildcardChecked(false);
+        fetchCards();
       } else {
         console.error("Failed to add card: " + response.error);
         toast("Failed to add card", {
@@ -139,6 +142,21 @@ export default function Cards() {
     }
     setIsLoading(false);
   };
+
+  // const handleDeleteDeckClick = async (e: any) => {
+  //   e.preventDefault();
+  //   if (isLoading) {
+  //     return;
+  //   }
+
+  //   toast("Not implemented.", {
+  //     type: "error",
+  //     autoClose: 2000,
+  //     hideProgressBar: true,
+  //   });
+
+  //   setIsLoading(false);
+  // };
 
   const handleCheckboxChange = (event: any) => {
     setIsWildcardChecked(event.target.checked);
@@ -156,19 +174,11 @@ export default function Cards() {
       style={cardItemStyle}
       onClick={() => openCardModal(card)}
     >
-      <div>
+      <div className="card-content">
         <h3>{card.title}</h3>
         <p>{card.description}</p>
         <p>{card.wildcard ? "Wildcard!" : ""}</p>
         {card.usercard && <div className="user-card-stamp">User card</div>}
-        {showPreview && (
-          <div className="card-preview">
-            <div className="preview-content">
-              <h3>{card.title}</h3>
-              <p>{card.description}</p>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
@@ -259,6 +269,22 @@ export default function Cards() {
           )}
         </button>
       </div>
+
+      {/* {iddeck && (
+        <button
+          className={`deck-delete-button ${isLoading ? "loading" : ""}`}
+          onClick={handleDeleteDeckClick}
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <>
+              <div className="small spinner"></div> Deleting Deck...
+            </>
+          ) : (
+            "Delete Deck"
+          )}
+        </button>
+      )} */}
       <ToastContainer />
     </div>
   );

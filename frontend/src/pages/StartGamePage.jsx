@@ -1,7 +1,5 @@
-import { useContext, useEffect, useRef, useState } from "react";
-import authContext from "../context/AuthProvider";
+import { useEffect, useRef, useState } from "react";
 import FastAPIClient from "../services/FastAPIClient";
-import { jwtDecode } from "jwt-decode";
 import ChooseGameDeck from "../components/Decks/ChooseGameDeck";
 import GameSettingsModal from "../components/GameSettingsModal";
 import "./StartGamePage.css";
@@ -10,11 +8,9 @@ import { getUserId } from "../components/RequireAuth";
 import { ToastContainer, toast } from "react-toastify";
 
 export default function StartGamePage() {
-  const userRef = useRef();
   const suggestionsRef = useRef(null);
   const errRef = useRef();
   const [errMsg, setErrMsg] = useState("");
-  const [success, setSuccess] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [searchedChar, setSearchedChar] = useState("");
   const [isLoading, setIsLoading] = useState("");
@@ -96,12 +92,11 @@ export default function StartGamePage() {
     // setIsLoading(false);
   };
 
-  const searchMembers = async (e) => {
-    console.log("Call");
+  const searchMembers = async (term) => {
     try {
       setIsLoading(true);
       const response = await fastAPIClient.get(
-        `/appuser/search?term=${searchTerm}`
+        `/appuser/search?term=${term}&external_id=${userId}`
       );
       if (!response.error) {
         setSuggestions(response.appusers || []);
@@ -137,11 +132,11 @@ export default function StartGamePage() {
     let sugg = suggestions;
     if (searchTerm[0] !== searchedChar) {
       setSearchedChar(searchTerm[0]);
-      sugg = await searchMembers();
+      sugg = await searchMembers(searchTerm[0]);
     }
 
     const updatedSuggestions = sugg.filter((suggestion) =>
-      suggestion.email.startsWith(searchTerm)
+      suggestion.email.toLowerCase().startsWith(searchTerm.toLowerCase())
     );
     setFilteredSuggestions(updatedSuggestions);
   };
@@ -204,7 +199,7 @@ export default function StartGamePage() {
               aria-describedby="uidnote"
               className="input-field"
             />
-            {isLoading && <div className="spinner small"></div>}
+            {isLoading && <div className="spinner search"></div>}
           </div>
           <ul className="suggestions" id="suggestions" ref={suggestionsRef}>
             {filteredSuggestions.map((suggestion, index) => (

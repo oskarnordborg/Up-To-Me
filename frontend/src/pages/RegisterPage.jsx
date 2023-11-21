@@ -18,7 +18,6 @@ export default function RegisterPage() {
   const [lastName, setLastName] = useState("");
   const [errMsg, setErrMsg] = useState("");
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     userRef.current.focus();
@@ -74,7 +73,7 @@ export default function RegisterPage() {
         toast(`Registered '${email}' redirecting you to login page`, {
           autoClose: 2000,
         });
-        console.log(registerToken);
+
         createAppUser(registerToken.userid);
         setTimeout(() => {
           navigate(`/login/${email}`);

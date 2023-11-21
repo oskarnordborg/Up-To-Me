@@ -21,7 +21,7 @@ class App extends Component {
   componentDidMount() {
     const link = document.createElement("link");
     link.rel = "manifest";
-    link.href = "/manifest.json"; // Update the path to your manifest file
+    link.href = "/manifest.json";
     document.head.appendChild(link);
   }
 
@@ -31,7 +31,6 @@ class App extends Component {
         <div className="App">
           <NavbarWrapper />
           <Routes>
-            {/* <Route exact path="/" element={<PublicPage />} /> */}
             <Route
               element={
                 <RequireAuth

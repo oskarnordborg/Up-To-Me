@@ -21,7 +21,6 @@ class CreateCardInput(BaseModel):
 
 
 def map_card(sql_card: list):
-    print(sql_card)
     return {
         field: sql_card[i]
         for i, field in enumerate(GET_CARD_FIELDS + ["usercard", "wildcard"])
