@@ -1,3 +1,5 @@
+import random
+from enum import Enum
 from typing import List
 
 import psycopg2
@@ -13,10 +15,18 @@ from . import db_connection_params
 router = APIRouter()
 
 
+class GameModeEnum(str, Enum):
+    all = "all"
+    deal = "deal"
+
+
 class CreateGameInput(BaseModel):
     external_id: str
     deck: int
     participants: list[int]
+    wildcards: int
+    skips: int
+    gamemode: GameModeEnum
 
 
 class AcceptGameInput(BaseModel):
@@ -197,7 +207,8 @@ async def get_game(idgame: int, external_id: str):
             ]
 
             query_game_appusers = """
-                SELECT email, CONCAT(firstname, ' ', lastname), ga.accepted
+                SELECT email, CONCAT(firstname, ' ', lastname), ga.accepted,
+                ga.skips_left
                 FROM appuser a
                 INNER JOIN game_appuser ga ON a.idappuser = ga.appuser
                 WHERE a.deleted = FALSE AND ga.deleted = FALSE
@@ -208,7 +219,11 @@ async def get_game(idgame: int, external_id: str):
 
             game_data += (
                 {
-                    user[0]: {"name": user[1], "accepted": user[2]}
+                    user[0]: {
+                        "name": user[1],
+                        "accepted": user[2],
+                        "skips_left": user[3],
+                    }
                     for user in game_appusers
                 },
             )
@@ -227,6 +242,18 @@ async def get_game(idgame: int, external_id: str):
         raise HTTPException(status_code=500, detail=f"Database error: {str(error)}")
 
 
+def list_batches(gamemode, lst, num_batches):
+    if gamemode == GameModeEnum.all:
+        return [list(lst) for _ in range(num_batches)]
+    elif gamemode == GameModeEnum.deal:
+        random.shuffle(lst)
+        batch_size = (len(lst) + num_batches - 1) // num_batches
+        batches = [
+            lst[i * batch_size : (i + 1) * batch_size] for i in range(num_batches)
+        ]
+        return batches
+
+
 @router.post("/game/")
 async def create_game(data: CreateGameInput):
     try:
@@ -242,23 +269,39 @@ async def create_game(data: CreateGameInput):
             data.participants.append(idappuser)
 
             insert_game_query = sql.SQL(
-                "INSERT INTO game (appuser, deck, updatedby) VALUES (%s, %s, %s) RETURNING idgame"
+                """
+                INSERT INTO game (
+                    appuser, deck, updatedby, wildcards_count, skips_count
+                )
+                VALUES (%s, %s, %s, %s, %s) RETURNING idgame
+                """
             )
-            cursor.execute(insert_game_query, (idappuser, data.deck, idappuser))
+            cursor.execute(
+                insert_game_query,
+                (idappuser, data.deck, idappuser, data.wildcards, data.skips),
+            )
             idgame = cursor.fetchone()[0]
 
             game_appuser_records = [
-                (idgame, participant, participant == idappuser, idappuser)
+                (
+                    idgame,
+                    participant,
+                    participant == idappuser,
+                    idappuser,
+                    data.skips,
+                )
                 for participant in data.participants
             ]
             insert_game_appuser_query = """
-                INSERT INTO game_appuser (game, appuser, accepted, updatedby)
+                INSERT INTO game_appuser (
+                    game, appuser, accepted, updatedby, skips_left
+                )
                 VALUES %s
             """
             execute_values(cursor, insert_game_appuser_query, game_appuser_records)
 
             select_card_deck_query = """
-                SELECT COALESCE(c.title, ''), COALESCE(c.description, ''), cd.wildcard
+                SELECT COALESCE(c.title, ''), COALESCE(c.description, ''), FALSE, c.idcard
                 FROM card_deck cd
                 LEFT JOIN card c ON cd.card = c.idcard
                 LEFT JOIN appuser a ON cd.appuser = a.idappuser
@@ -268,15 +311,25 @@ async def create_game(data: CreateGameInput):
             cursor.execute(select_card_deck_query, (data.external_id, data.deck))
             card_deck_data = cursor.fetchall()
 
+            batched_cards = list_batches(
+                data.gamemode, card_deck_data, len(data.participants)
+            )
+
+            for batch in batched_cards:
+                for _ in range(data.wildcards):
+                    batch.append(("", "", True, None))
+
             game_cards_data = [
-                (idgame, appuser, wildcard, title, description, idappuser)
-                for title, description, wildcard in card_deck_data
-                for appuser in data.participants
+                (idgame, appuser, wildcard, idcard, title, description, idappuser)
+                for index, appuser in enumerate(data.participants)
+                for title, description, wildcard, idcard in batched_cards[index]
             ]
 
             insert_game_card_query = sql.SQL(
                 """
-                INSERT INTO game_card (game, player, wildcard, title, description, updatedby)
+                INSERT INTO game_card (
+                    game, player, wildcard, card, title, description, updatedby
+                )
                 VALUES %s
                 """
             )

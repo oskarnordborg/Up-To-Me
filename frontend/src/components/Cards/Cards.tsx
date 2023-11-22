@@ -18,7 +18,6 @@ export default function Cards() {
   const [description, setDescription] = useState("");
   const [showSlownessMessage, setShowSlownessMessage] = useState(false);
   const [selectedCard, setSelectedCard] = useState(null);
-  const [isWildcardChecked, setIsWildcardChecked] = useState(false);
 
   const fastAPIClient = new FastAPIClient();
   const userId = getUserId();
@@ -98,7 +97,7 @@ export default function Cards() {
     if (isLoading) {
       return;
     }
-    if (!isWildcardChecked && (!title.trim() || !description.trim())) {
+    if (!title.trim() || !description.trim()) {
       toast("Please enter both title and description.", {
         type: "error",
         autoClose: 2000,
@@ -109,9 +108,8 @@ export default function Cards() {
     setIsLoading(true);
     try {
       let body: any = {
-        title: isWildcardChecked ? "" : title,
-        description: isWildcardChecked ? "" : description,
-        wildcard: isWildcardChecked,
+        title: title,
+        description: description,
         external_id: userId,
       };
       if (iddeck) {
@@ -127,7 +125,6 @@ export default function Cards() {
         setIsLoading(false);
         setTitle("");
         setDescription("");
-        setIsWildcardChecked(false);
         fetchCards();
       } else {
         console.error("Failed to add card: " + response.error);
@@ -157,10 +154,6 @@ export default function Cards() {
 
   //   setIsLoading(false);
   // };
-
-  const handleCheckboxChange = (event: any) => {
-    setIsWildcardChecked(event.target.checked);
-  };
 
   const cardItemStyle = {
     textDecoration: "none",
@@ -212,49 +205,38 @@ export default function Cards() {
       )}
       <div className="carousel-slide">
         <h3>New Card</h3>
-        <label className="checkbox-container">
-          <input
-            type="checkbox"
-            checked={isWildcardChecked}
-            onChange={handleCheckboxChange}
-          />
-          <span className="checkmark"></span>
-          Wildcard!
-        </label>
-        {!isWildcardChecked && (
-          <>
-            <div className="input-container">
-              <label className="new-card-label" htmlFor="title">
-                Title
-              </label>
-              <input
-                type="text"
-                id="title"
-                autoComplete="off"
-                onChange={(e) => setTitle(e.target.value)}
-                value={title}
-                required
-                aria-describedby="uidnote"
-                className="input-field"
-              />
-            </div>
-            <div className="input-container">
-              <label className="new-card-label" htmlFor="description">
-                Description
-              </label>
-              <input
-                type="text"
-                id="description"
-                autoComplete="off"
-                onChange={(e) => setDescription(e.target.value)}
-                value={description}
-                required
-                aria-describedby="uidnote"
-                className="input-field"
-              />
-            </div>
-          </>
-        )}
+        <>
+          <div className="input-container">
+            <label className="new-card-label" htmlFor="title">
+              Title
+            </label>
+            <input
+              type="text"
+              id="title"
+              autoComplete="off"
+              onChange={(e) => setTitle(e.target.value)}
+              value={title}
+              required
+              aria-describedby="uidnote"
+              className="input-field"
+            />
+          </div>
+          <div className="input-container">
+            <label className="new-card-label" htmlFor="description">
+              Description
+            </label>
+            <input
+              type="text"
+              id="description"
+              autoComplete="off"
+              onChange={(e) => setDescription(e.target.value)}
+              value={description}
+              required
+              aria-describedby="uidnote"
+              className="input-field"
+            />
+          </div>
+        </>
         <button
           className={`create-button ${isLoading ? "loading" : ""}`}
           onClick={handleAddCardClick}

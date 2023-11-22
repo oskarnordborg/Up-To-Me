@@ -24,8 +24,8 @@ export default function StartGamePage() {
   const fastAPIClient = new FastAPIClient();
   const userId = getUserId();
 
-  const handleDeckSelect = (deckId) => {
-    setSelectedDeck(deckId);
+  const handleDeckSelect = (deck) => {
+    setSelectedDeck(deck);
   };
 
   useEffect(() => {
@@ -178,8 +178,8 @@ export default function StartGamePage() {
         <ChooseGameDeck onSelectDeck={handleDeckSelect} userId={userId} />
         {openGameSettings && (
           <GameSettingsModal
-            cardCount={19}
-            participantCount={4}
+            deck={selectedDeck}
+            participants={selectedParticipants}
             closeFunction={closeCardModal}
           />
         )}
@@ -225,7 +225,10 @@ export default function StartGamePage() {
             ))}
           </ul>
         </div>
-        <button className="start-game-button" onClick={handleGameSettingsClick}>
+        <button
+          className="game-settings-button"
+          onClick={handleGameSettingsClick}
+        >
           Game Settings
         </button>
         <ToastContainer />

@@ -28,7 +28,9 @@ async def get_decks(external_id: Optional[str] = Query(None)):
             cursor = connection.cursor()
             query = (
                 f"SELECT {', '.join(GET_DECK_FIELDS)}, "
-                "(appuser.external_id IS NOT NULL) AS userdeck "
+                "(appuser.external_id IS NOT NULL) AS userdeck, "
+                "(SELECT COUNT(1) FROM card_deck WHERE card_deck.deck = deck.iddeck "
+                "AND card_deck.deleted = FALSE) AS cardcount "
                 "FROM deck LEFT JOIN appuser ON deck.appuser = appuser.idappuser "
             )
             if external_id:
@@ -49,6 +51,7 @@ async def get_decks(external_id: Optional[str] = Query(None)):
                 "title": deck[1],
                 "description": deck[2],
                 "userdeck": deck[3],
+                "cardcount": deck[4],
             }
             for deck in decks
         ]
