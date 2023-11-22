@@ -35,7 +35,6 @@
 }
 
 .card .admin-input {
-  flex: 1;
   margin-right: 10px;
 }
 
@@ -72,6 +71,7 @@
 }
 
 .toggle-button {
+  margin-top: 25px;
   padding: 10px;
   padding-right: 20px;
 }
@@ -118,16 +118,17 @@
   cursor: pointer;
   font-size: 16px;
 }
-.resize-textarea {
-  resize: vertical; /* Allow vertical resizing */
+
+.admin-resize-textarea {
+  resize: vertical;
   height: auto;
-  min-height: 50px; /* Set a minimum height */
-  max-height: 200px; /* Set a maximum height */
-  width: 100%; /* Set width as needed */
-  padding: 10px; /* Adjust padding as needed */
-  border: 1px solid #ccc; /* Add border */
-  border-radius: 5px; /* Add border radius */
-  font-family: Arial, sans-serif; /* Specify font */
-  box-sizing: border-box; /* Include padding and border in total width/height */
-  overflow-y: auto; /* Add vertical scrollbar when needed */
+  min-height: 150px;
+  max-height: 200px;
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-family: Arial, sans-serif;
+  box-sizing: border-box;
+  overflow-y: auto;
 }

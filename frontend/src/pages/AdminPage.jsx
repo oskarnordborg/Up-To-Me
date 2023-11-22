@@ -233,26 +233,28 @@ const AdminPage = () => {
               className="deck-header"
               onClick={(e) => toggleCards(e, deck.iddeck)}
             >
-              <input
-                className="admin-input"
-                type="text"
-                value={deck.title}
-                onChange={(e) =>
-                  handleDeckChange(deck.iddeck, "title", e.target.value)
-                }
-                placeholder="Enter deck title"
-              />
-              <input
-                className="admin-input"
-                type="text"
-                value={deck.description}
-                onChange={(e) =>
-                  handleDeckChange(deck.iddeck, "description", e.target.value)
-                }
-                placeholder="Enter deck description"
-              />
+              <div className="deck-input-fields">
+                <input
+                  className="admin-input"
+                  type="text"
+                  value={deck.title}
+                  onChange={(e) =>
+                    handleDeckChange(deck.iddeck, "title", e.target.value)
+                  }
+                  placeholder="Enter deck title"
+                />
+                <input
+                  className="admin-input"
+                  type="text"
+                  value={deck.description}
+                  onChange={(e) =>
+                    handleDeckChange(deck.iddeck, "description", e.target.value)
+                  }
+                  placeholder="Enter deck description"
+                />
+              </div>
               <span className="toggle-button">
-                {deck.showCards ? "🡹" : "🡻"}
+                {deck.showCards ? "/\\" : "V"}
               </span>
 
               <button
@@ -283,7 +285,7 @@ const AdminPage = () => {
                       />
 
                       <textarea
-                        className="resize-textarea"
+                        className="admin-resize-textarea"
                         placeholder="Enter card description"
                         value={card.description}
                         onChange={(e) =>
