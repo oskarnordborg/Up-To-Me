@@ -55,6 +55,7 @@ class GameCard(BaseModel):
     deleted: bool = False
     mycard: bool = False
     performer_name: str = ""
+    skipped: bool
 
     @classmethod
     def from_tuple(cls, data_tuple):
@@ -74,8 +75,9 @@ class GameCard(BaseModel):
             createdby=str(data_tuple[12])[:-10],
             updatedby=str(data_tuple[13])[:-10],
             deleted=data_tuple[14],
-            mycard=data_tuple[15],
-            performer_name=data_tuple[16] if len(data_tuple) > 16 else "",
+            skipped=data_tuple[15],
+            mycard=data_tuple[16],
+            performer_name=data_tuple[17] if len(data_tuple) > 17 else "",
         )
 
 
