@@ -118,6 +118,40 @@ export default function GameCardModal({
     setIsLoading(false);
   };
 
+  const handleSkipCardClick = async (e) => {
+    e.preventDefault();
+    if (isLoading) {
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const response = await fastAPIClient.put("/game/skip-card/", {
+        external_id: userId,
+        idgame_card: card.idgame_card,
+      });
+      if (!response.error) {
+        toast("Card skipped! moving it", {
+          className: "success",
+          autoClose: 2000,
+          hideProgressBar: true,
+        });
+        setIsLoading(false);
+        closeModal();
+        refreshPage();
+      } else {
+        console.error("Failed skip card: " + response.error);
+        toast("Failed skip card", {
+          className: "toast-error",
+          autoClose: 1000,
+          hideProgressBar: true,
+        });
+      }
+    } catch (error) {
+      console.error("An error occurred while fetching data:", error);
+    }
+    setIsLoading(false);
+  };
+
   return (
     <div className="game-modal-background" onClick={closeModal}>
       <div
@@ -164,6 +198,7 @@ export default function GameCardModal({
             {card.finished_time !== "" && (
               <div>Finished: {card.finished_time}</div>
             )}
+            {card.skipped && <div>Skipped</div>}
           </>
         )}
         <button className="close-button" onClick={closeModal}>
@@ -204,6 +239,26 @@ export default function GameCardModal({
             </button>
           </div>
         )}
+        {!card.playable &&
+          !card.mycard &&
+          card.finished_time === "" &&
+          !card.skipped && (
+            <div>
+              <button
+                onClick={handleSkipCardClick}
+                className="skip-card-button"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <div className="small button-spinner"></div> Skipping it...
+                  </>
+                ) : (
+                  <>Nope, skip it!</>
+                )}
+              </button>
+            </div>
+          )}
       </div>
       <ToastContainer />
     </div>

@@ -145,15 +145,15 @@ export default function GamePage() {
       <div className="who-played-mark">
         {!playable && card.mycard
           ? card.performer_name
-          : card.finished_time
-          ? "You"
+          : card.finished_time || card.skipped
+          ? `You ${card.skipped && "skipped"}`
           : ""}
       </div>
       <div className="who-played-mark">
         {!playable &&
           !card.mycard &&
           card.performer &&
-          (!card.finished_time ? "Take Action" : "")}
+          (!card.finished_time && !card.skipped ? "Take Action" : "")}
       </div>
     </div>
   );

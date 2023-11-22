@@ -117,6 +117,19 @@
   bottom: 10px;
   left: 10px;
 }
+.skip-card-button {
+  background-color: #e70000;
+  color: #fff;
+  border: none;
+  padding: 10px;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: background-color 0.3s ease;
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+}
 
 .resize-textarea {
   resize: vertical;

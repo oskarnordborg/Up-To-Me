@@ -43,7 +43,7 @@ class PlayCardInput(BaseModel):
     performers: List[str]
 
 
-class ConfirmCardInput(BaseModel):
+class CardActionInput(BaseModel):
     external_id: str
     idgame_card: int
 
@@ -158,6 +158,7 @@ async def get_game(idgame: int, external_id: str):
                 INNER JOIN appuser player ON gc.player = player.idappuser
                 WHERE gc.deleted = FALSE AND player.deleted = FALSE
                 AND gc.played_time IS NULL AND gc.game = %s AND player.external_id = %s
+                AND gc.skipped = FALSE
             """
             cursor.execute(query_game_cards_to_play, (external_id, idgame, external_id))
             game_cards_to_play_data = cursor.fetchall()
@@ -173,7 +174,7 @@ async def get_game(idgame: int, external_id: str):
                 INNER JOIN appuser performer ON gc.performer = performer.idappuser
                 LEFT JOIN appuser player ON gc.player = player.idappuser
                 WHERE gc.deleted = FALSE AND performer.deleted = FALSE AND gc.game = %s
-                AND finished_time IS NOT NULL
+                AND (finished_time IS NOT NULL OR gc.skipped = TRUE)
                 AND (player.external_id = %s OR performer.external_id = %s)
             """
             cursor.execute(
@@ -194,6 +195,7 @@ async def get_game(idgame: int, external_id: str):
                 LEFT JOIN appuser player ON gc.player = player.idappuser
                 WHERE gc.deleted = FALSE AND performer.deleted = FALSE
                 AND gc.game = %s AND played_time IS NOT NULL AND finished_time IS NULL
+                AND gc.skipped = FALSE
                 AND (performer.external_id = %s OR player.external_id = %s)
             """
             cursor.execute(
@@ -409,12 +411,12 @@ async def play_card(data: PlayCardInput):
 
 
 @router.put("/game/confirm-card/")
-async def confirm_card(data: ConfirmCardInput):
+async def confirm_card(data: CardActionInput):
     try:
         with psycopg2.connect(**db_connection_params) as connection:
             cursor = connection.cursor()
-            idappuser = db_connector.get_idappuser(cursor, external_id=data.external_id)
 
+            idappuser = db_connector.get_idappuser(cursor, external_id=data.external_id)
             update_query = sql.SQL(
                 """
                 UPDATE game_card
@@ -423,6 +425,50 @@ async def confirm_card(data: ConfirmCardInput):
                 """
             )
             cursor.execute(update_query, (idappuser, idappuser, data.idgame_card))
+            connection.commit()
+
+    except (Exception, psycopg2.Error) as error:
+        print("Error connecting to PostgreSQL:", error)
+        raise HTTPException(status_code=500, detail=f"Database error: {str(error)}")
+
+    return {"success": True}
+
+
+@router.put("/game/skip-card/")
+async def skip_card(data: CardActionInput):
+    try:
+        with psycopg2.connect(**db_connection_params) as connection:
+            cursor = connection.cursor()
+            idappuser = db_connector.get_idappuser(cursor, external_id=data.external_id)
+            query_skips = """
+                SELECT skips_left
+                FROM game_card
+                LEFT JOIN game ON game.idgame = game_card.game
+                LEFT JOIN game_appuser ON game.idgame = game_appuser.game
+                AND game_appuser.appuser = %s
+                WHERE game_card.deleted = FALSE AND idgame_card = %s
+            """
+            cursor.execute(query_skips, (idappuser, data.idgame_card))
+            skips_data = cursor.fetchone()
+            if skips_data[0] == 0:
+                raise HTTPException(status_code=401, detail="No skips left")
+
+            update_query = sql.SQL(
+                """
+                UPDATE game_card
+                SET updatedby = %s, skipped = TRUE
+                WHERE performer = %s AND idgame_card = %s AND game_card.deleted = FALSE
+                """
+            )
+            cursor.execute(update_query, (idappuser, idappuser, data.idgame_card))
+
+            update_query = sql.SQL(
+                """
+                UPDATE game_appuser SET skips_left = skips_left - 1
+                WHERE appuser = %s AND skips_left > 0
+                """
+            )
+            cursor.execute(update_query, (idappuser,))
             connection.commit()
 
     except (Exception, psycopg2.Error) as error:
