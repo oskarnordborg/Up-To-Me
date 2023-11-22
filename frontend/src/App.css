@@ -12,6 +12,8 @@
   flex-direction: column;
   cursor: pointer;
   z-index: 2;
+  position: absolute;
+  right: 20px;
 }
 
 .bar {
@@ -95,7 +97,7 @@
   color: white;
   cursor: pointer;
   position: absolute;
-  right: 20px;
+  right: 130px;
 }
 
 .start-game-link:hover {

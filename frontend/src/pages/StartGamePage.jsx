@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import FastAPIClient from "../services/FastAPIClient";
 import ChooseGameDeck from "../components/Decks/ChooseGameDeck";
+import GameSettingsModal from "../components/GameSettingsModal";
 import "./StartGamePage.css";
 import { useNavigate } from "react-router-dom";
 import { getUserId } from "../components/RequireAuth";
@@ -17,13 +18,14 @@ export default function StartGamePage() {
   const [filteredSuggestions, setFilteredSuggestions] = useState([]);
   const [selectedParticipants, setSelectedParticipants] = useState([]);
   const [selectedDeck, setSelectedDeck] = useState(null);
+  const [openGameSettings, setOpenGameSettings] = useState(null);
   const navigate = useNavigate();
 
   const fastAPIClient = new FastAPIClient();
   const userId = getUserId();
 
-  const handleDeckSelect = (deckId) => {
-    setSelectedDeck(deckId);
+  const handleDeckSelect = (deck) => {
+    setSelectedDeck(deck);
   };
 
   useEffect(() => {
@@ -41,8 +43,14 @@ export default function StartGamePage() {
       suggestionsList.style.display = "none";
     }
   };
+  const openGameSettingsModal = () => {
+    setOpenGameSettings(true);
+  };
+  const closeCardModal = () => {
+    setOpenGameSettings(false);
+  };
 
-  const handleStartGame = async (e) => {
+  const handleGameSettingsClick = async (e) => {
     e.preventDefault();
 
     if (!selectedDeck || selectedParticipants.length === 0) {
@@ -53,35 +61,35 @@ export default function StartGamePage() {
       });
       return;
     }
-    setIsLoading(true);
-    try {
-      const response = await fastAPIClient.post("/game/", {
-        external_id: userId,
-        deck: selectedDeck,
-        participants: selectedParticipants.map((item) => item.idappuser),
-      });
-      if (!response.error) {
-        toast("Game created!", {
-          className: "toast-success",
-          autoClose: 1000,
-          hideProgressBar: true,
-        });
-        setTimeout(() => {
-          navigate(`/mygames`);
-        }, 2500);
-        setIsLoading(false);
-      } else {
-        console.error("Failed to start game: " + response.error);
-        toast("Game created!", {
-          className: "toast-error",
-          autoClose: 1000,
-          hideProgressBar: true,
-        });
-      }
-    } catch (error) {
-      console.error("An error occurred while fetching data:", error);
-    }
-    setIsLoading(false);
+    openGameSettingsModal();
+    // try {
+    //   const response = await fastAPIClient.post("/game/", {
+    //     external_id: userId,
+    //     deck: selectedDeck,
+    //     participants: selectedParticipants.map((item) => item.idappuser),
+    //   });
+    //   if (!response.error) {
+    //     toast("Game created!", {
+    //       className: "toast-success",
+    //       autoClose: 1000,
+    //       hideProgressBar: true,
+    //     });
+    //     setTimeout(() => {
+    //       navigate(`/mygames`);
+    //     }, 2500);
+    //     setIsLoading(false);
+    //   } else {
+    //     console.error("Failed to start game: " + response.error);
+    //     toast("Game created!", {
+    //       className: "toast-error",
+    //       autoClose: 1000,
+    //       hideProgressBar: true,
+    //     });
+    //   }
+    // } catch (error) {
+    //   console.error("An error occurred while fetching data:", error);
+    // }
+    // setIsLoading(false);
   };
 
   const searchMembers = async (term) => {
@@ -168,6 +176,13 @@ export default function StartGamePage() {
           {errMsg}
         </p>
         <ChooseGameDeck onSelectDeck={handleDeckSelect} userId={userId} />
+        {openGameSettings && (
+          <GameSettingsModal
+            deck={selectedDeck}
+            participants={selectedParticipants}
+            closeFunction={closeCardModal}
+          />
+        )}
         <div className="input-container">
           <label htmlFor="members">Search Members</label>
           <div style={{ position: "relative" }}>
@@ -210,8 +225,11 @@ export default function StartGamePage() {
             ))}
           </ul>
         </div>
-        <button className="start-game-button" onClick={handleStartGame}>
-          Start Game
+        <button
+          className="game-settings-button"
+          onClick={handleGameSettingsClick}
+        >
+          Game Settings
         </button>
         <ToastContainer />
       </section>

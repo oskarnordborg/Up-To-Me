@@ -108,7 +108,7 @@ export default function RegisterPage() {
             value={email}
             required
             aria-describedby="uidnote"
-            className="input-field"
+            className="register-input-field"
           />
         </div>
         <div className="input-container">
@@ -122,7 +122,7 @@ export default function RegisterPage() {
             value={firstName}
             required
             aria-describedby="uidnote"
-            className="input-field"
+            className="register-input-field"
           />
         </div>
         <div className="input-container">
@@ -136,7 +136,7 @@ export default function RegisterPage() {
             value={lastName}
             required
             aria-describedby="uidnote"
-            className="input-field"
+            className="register-input-field"
           />
         </div>
         <button onClick={handleSubmit} className="registration-button">

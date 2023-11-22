@@ -6,6 +6,7 @@ from pydantic import BaseModel
 class GameParticipant(BaseModel):
     name: str
     accepted: bool
+    skips_left: int
 
 
 class Game(BaseModel):
@@ -16,6 +17,8 @@ class Game(BaseModel):
     deck: int
     participants: Optional[Dict[str, GameParticipant]]
     started: bool = False
+    wildcards_count: int
+    skips_count: int
 
     @classmethod
     def from_tuple(cls, data_tuple):
@@ -28,7 +31,9 @@ class Game(BaseModel):
             createdby=data_tuple[5],
             updatedby=data_tuple[6],
             deleted=data_tuple[7],
-            participants=data_tuple[8],
+            wildcards_count=data_tuple[8],
+            skips_count=data_tuple[9],
+            participants=data_tuple[10],
         )
 
 

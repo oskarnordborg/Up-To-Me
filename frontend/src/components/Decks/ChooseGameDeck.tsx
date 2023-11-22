@@ -13,7 +13,7 @@ const ChooseGameDeck = ({
   const [decks, setDecks] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
   const [startY, setStartY] = useState(null);
-  const [selectedDeck, setSelectedDeck] = useState(null);
+  const [selectedDeck, setSelectedDeck]: [any, any] = useState(null);
 
   const fastAPIClient = new FastAPIClient();
   const userId = getUserId();
@@ -70,11 +70,11 @@ const ChooseGameDeck = ({
   });
 
   const renderDeck = (deck: any) => {
-    const isSelected = selectedDeck === deck.iddeck;
+    const isSelected = selectedDeck?.iddeck === deck.iddeck;
 
     const handleClick = () => {
-      setSelectedDeck(deck.iddeck);
-      onSelectDeck(deck.iddeck);
+      setSelectedDeck(deck);
+      onSelectDeck(deck);
     };
 
     const deckClass = `game-deck-item ${isSelected ? "selected" : ""}`;

@@ -42,11 +42,6 @@ const Navbar = () => {
 
   return (
     <nav className="navbar" ref={navbarRef}>
-      <div className="menu-toggle" onClick={toggleMenu}>
-        <div className="bar"></div>
-        <div className="bar"></div>
-        <div className="bar"></div>
-      </div>
       <button className="navigation-button" onClick={goBack}>
         {"<"}
       </button>
@@ -85,9 +80,14 @@ const Navbar = () => {
       </ul>
       {userId && (
         <a className="start-game-link" href="/startgame">
-          Start game
+          New Game
         </a>
       )}
+      <div className="menu-toggle" onClick={toggleMenu}>
+        <div className="bar"></div>
+        <div className="bar"></div>
+        <div className="bar"></div>
+      </div>
     </nav>
   );
 };
