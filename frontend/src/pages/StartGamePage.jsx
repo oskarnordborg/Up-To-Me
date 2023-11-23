@@ -185,7 +185,7 @@ export default function StartGamePage() {
         )}
         <div className="input-container">
           <label htmlFor="members">Search Members</label>
-          <div style={{ position: "relative" }}>
+          <div>
             <input
               type="text"
               id="members"

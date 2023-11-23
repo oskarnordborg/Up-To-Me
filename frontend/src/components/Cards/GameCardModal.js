@@ -174,7 +174,7 @@ export default function GameCardModal({
                 value={title}
                 required
                 aria-describedby="uidnote"
-                className="input-field"
+                className="game-card-input-field"
               />
             </div>
             <div className="input-container">

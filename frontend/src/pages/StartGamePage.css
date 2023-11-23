@@ -110,8 +110,6 @@ ul.suggestions {
 }
 
 .input-field {
-  position: relative;
-  z-index: -1;
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 5px;
