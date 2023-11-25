@@ -40,6 +40,10 @@ const Navbar = () => {
     navigate(1);
   };
 
+  const handleRefresh = () => {
+    window.location.reload();
+  };
+
   return (
     <nav className="navbar" ref={navbarRef}>
       <button className="navigation-button" onClick={goBack}>
@@ -83,6 +87,9 @@ const Navbar = () => {
           New Game
         </a>
       )}
+      <button className="refresh-button" onClick={handleRefresh}>
+        <i className="fas fa-redo-alt"></i>
+      </button>
       <div className="menu-toggle" onClick={toggleMenu}>
         <div className="bar"></div>
         <div className="bar"></div>

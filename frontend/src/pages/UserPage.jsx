@@ -7,12 +7,15 @@ import FastAPIClient from "../services/FastAPIClient";
 
 export default function UserPage() {
   const { startemail } = useParams();
+  const usernameRef = useRef();
   const userRef = useRef();
   const firstNameRef = useRef();
   const lastNameRef = useRef();
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [statistics, setStatistics] = useState({});
 
   const fastAPIClient = new FastAPIClient();
   const userId = getUserId();
@@ -33,9 +36,11 @@ export default function UserPage() {
       );
       if (!response.error) {
         if (response) {
+          setUsername(response.username || "");
           setEmail(response.email || startemail);
           setFirstName(response.firstname || "");
           setLastName(response.lastname || "");
+          setStatistics(response.statistics || {});
         }
       } else {
         console.error("Failed to fetch user data: " + response.error);
@@ -49,6 +54,7 @@ export default function UserPage() {
     try {
       const response = await fastAPIClient.put(`/appuser/`, {
         userid: userId,
+        username: username,
         email: email,
         firstname: firstName,
         lastname: lastName,
@@ -60,11 +66,14 @@ export default function UserPage() {
           hideProgressBar: true,
         });
       } else {
-        toast("Failed to update user info", {
-          type: "error",
-          autoClose: 1000,
-          hideProgressBar: true,
-        });
+        toast(
+          "Failed to update user info: " + JSON.parse(response.error).detail,
+          {
+            type: "error",
+            autoClose: 3000,
+            hideProgressBar: true,
+          }
+        );
       }
     } catch (error) {
       toast("Failed to update user info", {
@@ -78,6 +87,20 @@ export default function UserPage() {
   return (
     <section>
       <h1 className="registration-heading">User info</h1>
+      <div className="input-container">
+        <label htmlFor="username">Username</label>
+        <input
+          type="username"
+          id="username"
+          ref={usernameRef}
+          autoComplete="off"
+          onChange={(e) => setUsername(e.target.value)}
+          value={username}
+          required
+          aria-describedby="uidnote"
+          className="input-field"
+        />
+      </div>
       <div className="input-container">
         <label htmlFor="email">Email</label>
         <input
@@ -123,6 +146,17 @@ export default function UserPage() {
       <button onClick={updateAppUser} className="update-button">
         Update info
       </button>
+      <h1 className="registration-heading">Statistics</h1>
+      <table className="stats-table">
+        <tbody>
+          {Object.entries(statistics).map(([key, value]) => (
+            <tr key={key}>
+              <td>{key}:</td>
+              <td>{value}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
       <ToastContainer />
     </section>
   );

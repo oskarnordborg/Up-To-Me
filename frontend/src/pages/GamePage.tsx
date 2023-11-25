@@ -158,80 +158,79 @@ export default function GamePage() {
     </div>
   );
 
-  if (refreshing) {
-    return (
-      <div className="spinner-container">
-        <div className="spinner" />
-        <div className="slowness-message">
-          {showSlownessMessage && (
-            <div>
-              <p>Sorry for slowness </p>
-              <p>Waking up the server.. </p>
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="GamePage-main" {...swipeHandlers}>
-      <div>
-        <div>Game</div>
-        <div>Invited: {gameInfo.createdtime}</div>
-        <div>
-          {gameInfo.participants &&
-            Object.keys(gameInfo.participants).map((email: string) => (
-              <div key={email}>
-                {gameInfo.participants[email].name}{" "}
-                {gameInfo.participants[email].accepted
-                  ? ` ${gameInfo.participants[email].skips_left}/${gameInfo.skips_count} skips left`
-                  : " - invited"}
+    <>
+      {refreshing && (
+        <div className="spinner-container">
+          <div className="spinner" />
+          <div className="slowness-message">
+            {showSlownessMessage && (
+              <div>
+                <p>Sorry for slowness </p>
+                <p>Waking up the server.. </p>
               </div>
-            ))}
+            )}
+          </div>
         </div>
-      </div>
-      In Play
-      <div className="game-cards-grid">
-        {cardsInPlay.map((card) => renderCard(card, false))}
-      </div>
-      To Play
-      <div className="game-cards-grid">
-        {cardsToPlay.map((card) => renderCard(card, true))}
-      </div>
-      Done
-      <div className="game-cards-grid done">
-        {cardsDone.map((card) => renderCard(card, false))}
-      </div>
-      {selectedCard && (
-        <GameCardModal
-          card={selectedCard}
-          participants={gameInfo.participants}
-          started={gameInfo.started}
-          closeModal={closeCardModal}
-          refreshPage={fetchGameInfo}
-        />
       )}
-      <ConfirmDialog
-        message="Are you sure you want to resign?"
-        onConfirm={handleResignConfirm}
-        onCancel={handleResignCancel}
-        showModal={showConfirmResignModal}
-      />
-      <button
-        className={`resign-button ${isLoading ? "loading" : ""}`}
-        onClick={handleResignClick}
-        disabled={isLoading}
-      >
-        {isLoading ? (
-          <>
-            <span className="small spinner"></span> Resigning...
-          </>
-        ) : (
-          "Resign"
+      <div className="GamePage-main" {...swipeHandlers}>
+        <div>
+          <div>Game</div>
+          <div>Invited: {gameInfo.createdtime}</div>
+          <div>
+            {gameInfo.participants &&
+              Object.keys(gameInfo.participants).map((email: string) => (
+                <div key={email}>
+                  {gameInfo.participants[email].name}{" "}
+                  {gameInfo.participants[email].accepted
+                    ? ` ${gameInfo.participants[email].skips_left}/${gameInfo.skips_count} skips left`
+                    : " - invited"}
+                </div>
+              ))}
+          </div>
+        </div>
+        In Play
+        <div className="game-cards-grid">
+          {cardsInPlay.map((card) => renderCard(card, false))}
+        </div>
+        To Play
+        <div className="game-cards-grid">
+          {cardsToPlay.map((card) => renderCard(card, true))}
+        </div>
+        Done
+        <div className="game-cards-grid done">
+          {cardsDone.map((card) => renderCard(card, false))}
+        </div>
+        {selectedCard && (
+          <GameCardModal
+            card={selectedCard}
+            participants={gameInfo.participants}
+            started={gameInfo.started}
+            closeModal={closeCardModal}
+            refreshPage={fetchGameInfo}
+          />
         )}
-      </button>
-      <ToastContainer />
-    </div>
+        <ConfirmDialog
+          message="Are you sure you want to resign?"
+          onConfirm={handleResignConfirm}
+          onCancel={handleResignCancel}
+          showModal={showConfirmResignModal}
+        />
+        <button
+          className={`resign-button ${isLoading ? "loading" : ""}`}
+          onClick={handleResignClick}
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <>
+              <span className="small spinner"></span> Resigning...
+            </>
+          ) : (
+            "Resign"
+          )}
+        </button>
+        <ToastContainer />
+      </div>
+    </>
   );
 }

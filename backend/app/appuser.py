@@ -11,6 +11,7 @@ router = APIRouter()
 
 class AppUserInput(BaseModel):
     userid: str
+    username: str
     email: str
     firstname: str
     lastname: str
@@ -47,7 +48,7 @@ async def get_appuser(external_id: str):
             cursor = connection.cursor()
 
             get_query = sql.SQL(
-                "SELECT idappuser, email, firstname, lastname "
+                "SELECT idappuser, username, email, firstname, lastname "
                 "FROM appuser WHERE external_id = %s LIMIT 1"
             )
 
@@ -57,11 +58,45 @@ async def get_appuser(external_id: str):
             if not appuser:
                 insert_query = sql.SQL(
                     "INSERT INTO appuser (external_id) VALUES (%s) "
-                    "RETURNING idappuser, email, firstname, lastname"
+                    "RETURNING idappuser, username, email, firstname, lastname"
                 )
                 cursor.execute(insert_query, (external_id,))
                 connection.commit()
                 appuser = cursor.fetchone()
+
+            query = sql.SQL(
+                """
+                SELECT
+                    (SELECT COUNT(*) FROM card WHERE appuser = %(user_id)s) AS total_cards_created,
+                    (SELECT COUNT(*) FROM game_card WHERE player = %(user_id)s) AS total_cards_played,
+                    (SELECT COUNT(*) FROM game_card WHERE performer = %(user_id)s AND finished_time IS NOT NULL) AS total_cards_finished,
+                    (SELECT COUNT(*) FROM deck WHERE appuser = %(user_id)s) AS total_decks_created,
+                    (SELECT COUNT(*) FROM game_appuser WHERE appuser = %(user_id)s) AS total_games_participated,
+                    (SELECT COUNT(*) FROM game_appuser WHERE appuser = %(user_id)s AND accepted = TRUE) AS total_games_won,
+                    (SELECT AVG(num_cards) FROM (
+                        SELECT COUNT(*) AS num_cards FROM game_card WHERE player = %(user_id)s GROUP BY game
+                    ) AS card_counts) AS avg_cards_per_game,
+                    (SELECT MIN(createdtime) FROM card WHERE appuser = %(user_id)s) AS first_card_created,
+                    (SELECT MAX(createdtime) FROM card WHERE appuser = %(user_id)s) AS last_card_created
+            """
+            )
+
+            cursor.execute(query, {"user_id": appuser[0]})
+            user_stats = cursor.fetchone()
+
+            keys = [
+                "Total Cards Created",
+                "Total Cards Played",
+                "Total Cards Finished",
+                "Total Decks Created",
+                "Total Games Participated",
+                "Total Games Won",
+                "Avg Cards Per Game",
+            ]
+
+            stats_dict = {key: round(val, 2) for key, val in zip(keys, user_stats)}
+            stats_dict["First Card Created"] = str(user_stats[7])[:-10]
+            stats_dict["Last Card Created"] = str(user_stats[8])[:-10]
 
     except (Exception, psycopg2.Error) as error:
         raise HTTPException(status_code=500, detail=f"Database error: {str(error)}")
@@ -69,9 +104,11 @@ async def get_appuser(external_id: str):
     return (
         {
             "idappuser": appuser[0],
-            "email": appuser[1],
-            "firstname": appuser[2],
-            "lastname": appuser[3],
+            "username": appuser[1],
+            "email": appuser[2],
+            "firstname": appuser[3],
+            "lastname": appuser[4],
+            "statistics": stats_dict,
         }
         if appuser
         else {}
@@ -86,7 +123,7 @@ async def search_appuser(term: str, external_id: str):
             db_connector.get_idappuser(cursor, external_id=external_id)
 
             get_query = sql.SQL(
-                "SELECT idappuser, email FROM appuser WHERE email ILIKE %s "
+                "SELECT idappuser, username FROM appuser WHERE username ILIKE %s "
                 "AND external_id != %s"
             )
 
@@ -100,7 +137,7 @@ async def search_appuser(term: str, external_id: str):
         "appusers": [
             {
                 "idappuser": appuser[0],
-                "email": appuser[1],
+                "username": appuser[1],
             }
             for appuser in appusers
         ]
@@ -113,14 +150,32 @@ async def create_appuser(data: AppUserInput):
         with psycopg2.connect(**db_connection_params) as connection:
             cursor = connection.cursor()
 
+            get_query = sql.SQL(
+                """
+                SELECT EXISTS (
+                    SELECT 1
+                    FROM appuser
+                    WHERE username ILIKE %s AND external_id != %s
+                )
+            """
+            )
+
+            cursor.execute(get_query, (data.username, data.userid))
+            exists = cursor.fetchone()[0]
+            if exists:
+                raise HTTPException(
+                    status_code=400, detail="Username already registered"
+                )
+
             insert_query = sql.SQL(
-                "INSERT INTO appuser (external_id, email, firstname, lastname) VALUES ({})"
+                "INSERT INTO appuser (external_id, username, email, firstname, lastname) VALUES ({})"
             ).format(
-                sql.SQL(", ").join([sql.Placeholder()] * 4),
+                sql.SQL(", ").join([sql.Placeholder()] * 5),
             )
 
             cursor.execute(
-                insert_query, (data.userid, data.email, data.firstname, data.lastname)
+                insert_query,
+                (data.userid, data.username, data.email, data.firstname, data.lastname),
             )
             connection.commit()
 
@@ -137,16 +192,33 @@ async def update_appuser(data: AppUserInput):
         with psycopg2.connect(**db_connection_params) as connection:
             cursor = connection.cursor()
 
+            get_query = sql.SQL(
+                """
+                SELECT EXISTS (
+                    SELECT 1
+                    FROM appuser
+                    WHERE username ILIKE %s AND external_id != %s
+                )
+            """
+            )
+
+            cursor.execute(get_query, (data.username, data.userid))
+            exists = cursor.fetchone()[0]
+            if exists:
+                raise HTTPException(
+                    status_code=400, detail="Username already registered"
+                )
             update_query = sql.SQL(
-                "UPDATE appuser SET email = %s, firstname = %s, lastname = %s "
+                "UPDATE appuser SET username = %s, email = %s, firstname = %s, lastname = %s "
                 "WHERE external_id = %s"
             )
             cursor.execute(
-                update_query, (data.email, data.firstname, data.lastname, data.userid)
+                update_query,
+                (data.username, data.email, data.firstname, data.lastname, data.userid),
             )
             connection.commit()
 
-    except (Exception, psycopg2.Error) as error:
+    except psycopg2.Error as error:
         print("Error connecting to PostgreSQL:", error)
         raise HTTPException(status_code=500, detail=f"Database error: {str(error)}")
 

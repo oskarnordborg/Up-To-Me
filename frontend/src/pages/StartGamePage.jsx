@@ -136,7 +136,7 @@ export default function StartGamePage() {
     }
 
     const updatedSuggestions = sugg.filter((suggestion) =>
-      suggestion.email.toLowerCase().startsWith(searchTerm.toLowerCase())
+      suggestion.username.toLowerCase().startsWith(searchTerm.toLowerCase())
     );
     setFilteredSuggestions(updatedSuggestions);
   };
@@ -199,12 +199,12 @@ export default function StartGamePage() {
               aria-describedby="uidnote"
               className="input-field"
             />
-            {isLoading && <div className="spinner search"></div>}
+            {isLoading && <div className="spinner-search"></div>}
           </div>
           <ul className="suggestions" id="suggestions" ref={suggestionsRef}>
             {filteredSuggestions.map((suggestion, index) => (
               <li key={index} onClick={() => handleSelectItem(suggestion)}>
-                {suggestion.email}
+                {suggestion.username}
               </li>
             ))}
           </ul>
@@ -214,7 +214,7 @@ export default function StartGamePage() {
           <ul>
             {selectedParticipants.map((item, index) => (
               <li key={index}>
-                {item.email}{" "}
+                {item.username}{" "}
                 <span
                   className="remove-selected"
                   onClick={() => handleRemoveItem(item)}

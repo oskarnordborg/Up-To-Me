@@ -1,5 +1,6 @@
 import os
 import uuid
+from datetime import datetime, timedelta
 
 import psycopg2
 from app import db_connector
@@ -71,6 +72,7 @@ api_bp = PasswordlessApiBlueprint(app)
 
 
 class RegisterInput(BaseModel):
+    username: str
     email: str
     firstName: str
     lastName: str
@@ -120,10 +122,34 @@ async def login(token: str):
 
 @app.post("/passwordless/register")
 async def register(request_data: RegisterInput):
+    try:
+        with psycopg2.connect(**db_connection_params) as connection:
+            cursor = connection.cursor()
+            get_query = sql.SQL(
+                """
+                SELECT EXISTS (
+                    SELECT 1
+                    FROM appuser
+                    WHERE username ILIKE %s
+                )
+            """
+            )
+
+            cursor.execute(get_query, (response_data.username,))
+            exists = cursor.fetchone()[0]
+            if exists:
+                raise HTTPException(
+                    status_code=400, detail="Username already registered"
+                )
+
+    except (Exception, psycopg2.Error) as error:
+        raise HTTPException(status_code=500, detail=f"Database error: {str(error)}")
+
     new_user_id = str(uuid.uuid4())
     register_token = RegisterToken(
         user_id=new_user_id,
         username=request_data.email,
+        expires_at=datetime.utcnow() + timedelta(minutes=2),
     )
     response_data: RegisteredTokenUserId = api_bp.api_client.register_token(
         register_token

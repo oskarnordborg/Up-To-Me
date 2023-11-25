@@ -84,17 +84,28 @@ ul.suggestions {
   padding-bottom: 10px;
 }
 
-.spinner.search {
-  position: absolute;
-  top: 25%;
-  right: 10px;
-  border-top: 4px solid #cfcfcf;
-  margin-right: 10px;
+.spinner-search {
+  position: relative;
+  top: -30px;
+  right: 20px;
+  transform: translate(-50%, -50%);
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  border-top: 4px solid #0077ff;
+  border-radius: 50%;
   width: 15px;
   height: 15px;
   float: right;
+  animation: spin 1s linear infinite;
 }
 
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
 .selected-items {
   padding-bottom: 100px;
   padding-left: 10px;

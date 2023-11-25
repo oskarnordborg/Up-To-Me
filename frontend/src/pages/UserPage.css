@@ -30,7 +30,7 @@
   background-color: #288b21;
   color: white;
   border: none;
-  margin-top: 100px;
+  margin-top: 20px;
   padding: 10px 20px;
   border-radius: 5px;
   cursor: pointer;
@@ -53,4 +53,12 @@
 
 label {
   color: #d9d9d9;
+}
+
+.stats-table {
+  padding: 20px;
+}
+
+.stats-table td {
+  text-align: left;
 }

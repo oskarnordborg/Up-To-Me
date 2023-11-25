@@ -13,6 +13,7 @@ export default function RegisterPage() {
   const firstNameRef = useRef();
   const lastNameRef = useRef();
   const errRef = useRef();
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -49,9 +50,12 @@ export default function RegisterPage() {
     let registerToken = null;
     try {
       const fastAPIClient = new FastAPIClient();
-      registerToken = await fastAPIClient.register(email, firstName, lastName, {
-        timestamp: Date.now(),
-      });
+      registerToken = await fastAPIClient.register(
+        username,
+        email,
+        firstName,
+        lastName
+      );
     } catch (error) {
       toast(error.message, {
         className: "error",
@@ -97,6 +101,20 @@ export default function RegisterPage() {
           {errMsg}
         </p>
         <h1 className="registration-heading">Register</h1>
+        <div className="input-container">
+          <label htmlFor="username">Username</label>
+          <input
+            type="text"
+            id="username"
+            ref={userRef}
+            autoComplete="off"
+            onChange={(e) => setUsername(e.target.value)}
+            value={username}
+            required
+            aria-describedby="uidnote"
+            className="register-input-field"
+          />
+        </div>
         <div className="input-container">
           <label htmlFor="email">Email</label>
           <input

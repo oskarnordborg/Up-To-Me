@@ -2,9 +2,10 @@ const BACKEND_URL = process.env.REACT_APP_API_URL;
 const X_API_KEY = process.env.REACT_APP_API_KEY;
 
 export default class FastApiClient {
-  async register(user, firstName, lastName) {
+  async register(username, email, firstName, lastName) {
     const request = {
-      email: user,
+      username: username,
+      email: email,
       firstName: firstName,
       lastName: lastName,
     };

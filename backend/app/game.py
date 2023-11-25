@@ -62,14 +62,14 @@ async def get_games(external_id: str):
         with psycopg2.connect(**db_connection_params) as connection:
             cursor = connection.cursor()
             get_query = sql.SQL(
-                "SELECT email FROM appuser WHERE deleted = FALSE AND external_id = %s LIMIT 1"
+                "SELECT username FROM appuser WHERE deleted = FALSE AND external_id = %s LIMIT 1"
             )
             cursor.execute(get_query, (external_id,))
-            appuser_email = cursor.fetchone()[0]
+            appuser_username = cursor.fetchone()[0]
 
             cursor.execute(
                 """
-                SELECT g.idgame, g.createdtime, a.email, d.title, ga.accepted
+                SELECT g.idgame, g.createdtime, a.username, d.title, ga.accepted
                 FROM game AS g
                 INNER JOIN game_appuser AS ga ON g.idgame = ga.game
                 INNER JOIN appuser AS a ON ga.appuser = a.idappuser
@@ -84,7 +84,7 @@ async def get_games(external_id: str):
 
             cursor.execute(
                 """
-                SELECT ga.game, array_agg(a.email)
+                SELECT ga.game, array_agg(a.username)
                 FROM game_appuser AS ga
                 INNER JOIN appuser AS a ON ga.appuser = a.idappuser
                 WHERE ga.deleted = FALSE AND a.deleted = FALSE AND ga.game = ANY(%s)
@@ -103,7 +103,9 @@ async def get_games(external_id: str):
                 game_id = game_data[0]
                 participants = game_participants_dict.get(game_id, [])
                 participants = [
-                    email for email in participants if email != appuser_email
+                    username
+                    for username in participants
+                    if username != appuser_username
                 ]
 
                 game = {

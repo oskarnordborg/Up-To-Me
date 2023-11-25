@@ -107,27 +107,26 @@ export default function MyGamesPage() {
     </Link>
   );
 
-  if (refreshing) {
-    return (
-      <div className="spinner-container">
-        <div className="spinner" />
-        <div className="slowness-message">
-          {showSlownessMessage && (
-            <div>
-              <p>Sorry for slowness </p>
-              <p>Waking up the server.. </p>
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <section>
-      <h2>Games </h2>
-      <ul className="game-list">{games.map((game) => renderGame(game))}</ul>
-      <ToastContainer />
-    </section>
+    <>
+      {refreshing && (
+        <div className="spinner-container">
+          <div className="spinner" />
+          <div className="slowness-message">
+            {showSlownessMessage && (
+              <div>
+                <p>Sorry for slowness </p>
+                <p>Waking up the server.. </p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+      <section>
+        <h2>Games </h2>
+        <ul className="game-list">{games.map((game) => renderGame(game))}</ul>
+        <ToastContainer />
+      </section>
+    </>
   );
 }
