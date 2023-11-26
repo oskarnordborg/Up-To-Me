@@ -21,7 +21,7 @@ class Deck(BaseModel):
 
 class Card(BaseModel):
     idcard: int
-    iddeck: int
+    iddeck: int = 0
     title: str
     description: str
     created: bool = False
@@ -35,9 +35,9 @@ class DeleteDecksAndCards(BaseModel):
 
 class DecksAndCardsUpdateInput(BaseModel):
     external_id: str
-    decks: list[Deck]
-    cards: list[Card]
-    deletes: DeleteDecksAndCards
+    decks: list[Deck] = []
+    cards: list[Card] = []
+    deletes: DeleteDecksAndCards = []
 
 
 @router.get("/admin/decks/cards")
@@ -46,7 +46,8 @@ async def get_common_decks_and_cards(external_id: str):
         with psycopg2.connect(**db_connection_params) as connection:
             cursor = connection.cursor()
             get_query = sql.SQL(
-                "SELECT is_admin FROM appuser WHERE deleted = FALSE AND external_id = %s LIMIT 1"
+                "SELECT is_admin FROM appuser "
+                "WHERE deleted = FALSE AND external_id = %s LIMIT 1"
             )
             cursor.execute(get_query, (external_id,))
             appuser = cursor.fetchone()
@@ -105,7 +106,8 @@ async def update_common_decks_and_cards(data: DecksAndCardsUpdateInput):
         with psycopg2.connect(**db_connection_params) as connection:
             cursor = connection.cursor()
             get_query = sql.SQL(
-                "SELECT is_admin, idappuser FROM appuser WHERE deleted = FALSE AND external_id = %s LIMIT 1"
+                "SELECT is_admin, idappuser FROM appuser "
+                "WHERE deleted = FALSE AND external_id = %s LIMIT 1"
             )
             cursor.execute(get_query, (data.external_id,))
             appuser = cursor.fetchone()

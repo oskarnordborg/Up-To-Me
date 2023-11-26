@@ -4,8 +4,10 @@
   background-color: #333;
   color: #fff;
   padding: 10px 20px;
-  position: relative;
+  position: fixed;
   z-index: 1;
+  width: 90%;
+  top: 0;
 }
 
 .menu-toggle {
@@ -55,6 +57,7 @@
 .App {
   text-align: center;
   height: 100%;
+  padding-top: 40px;
 }
 
 .App-logo {

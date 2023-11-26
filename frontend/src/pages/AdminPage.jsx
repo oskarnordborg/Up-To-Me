@@ -65,7 +65,7 @@ const AdminPage = () => {
       } else {
         toast("Failed to update data: " + response.error, {
           type: "error",
-          autoClose: 2000,
+          autoClose: 3000,
           hideProgressBar: true,
         });
       }

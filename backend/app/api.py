@@ -3,7 +3,6 @@ import uuid
 from datetime import datetime, timedelta
 
 import psycopg2
-from app import db_connector
 from app.helpers import jwt_helper
 from fastapi import APIRouter, Body, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
