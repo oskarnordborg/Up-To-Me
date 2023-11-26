@@ -179,11 +179,11 @@ export default function GamePage() {
           <div>Invited: {gameInfo.createdtime}</div>
           <div>
             {gameInfo.participants &&
-              Object.keys(gameInfo.participants).map((email: string) => (
-                <div key={email}>
-                  {gameInfo.participants[email].name}{" "}
-                  {gameInfo.participants[email].accepted
-                    ? ` ${gameInfo.participants[email].skips_left}/${gameInfo.skips_count} skips left`
+              Object.keys(gameInfo.participants).map((username: string) => (
+                <div key={username}>
+                  {gameInfo.participants[username].name}{" "}
+                  {gameInfo.participants[username].accepted
+                    ? ` ${gameInfo.participants[username].skips_left}/${gameInfo.skips_count} skips left`
                     : " - invited"}
                 </div>
               ))}

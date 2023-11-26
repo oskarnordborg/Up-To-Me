@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { Component, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import UserPage from "./pages/UserPage";
 import AdminPage from "./pages/AdminPage";
@@ -16,13 +16,32 @@ import UnauthorizedPage from "./pages/UnauthorizedPage";
 import "react-toastify/dist/ReactToastify.css";
 import "./App.css";
 import NavbarWrapper from "./Navbar";
+import OneSignal from "react-onesignal";
 
+const ONESIGNAL_APP_ID = process.env.REACT_APP_ONESIGNAL_APP_ID;
+
+let hasLoaded = false;
 class App extends Component {
-  componentDidMount() {
+  async componentDidMount() {
     const link = document.createElement("link");
     link.rel = "manifest";
     link.href = "/manifest.json";
     document.head.appendChild(link);
+
+    if (!hasLoaded) {
+      hasLoaded = true;
+      OneSignal.Slidedown.promptPush({ force: true });
+      OneSignal.Notifications.addEventListener(
+        "notificationDisplay",
+        (event) => {
+          console.log("OneSignal notification displayed:", event);
+        }
+      );
+
+      OneSignal.Notifications.addEventListener("notificationClick", (event) => {
+        console.log("OneSignal notification clicked:", event);
+      });
+    }
   }
 
   render() {

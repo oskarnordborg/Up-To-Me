@@ -211,7 +211,7 @@ async def get_game(idgame: int, external_id: str):
             ]
 
             query_game_appusers = """
-                SELECT email, CONCAT(firstname, ' ', lastname), ga.accepted,
+                SELECT username, CONCAT(firstname, ' ', lastname), ga.accepted,
                 ga.skips_left
                 FROM appuser a
                 INNER JOIN game_appuser ga ON a.idappuser = ga.appuser
@@ -251,7 +251,7 @@ def list_batches(gamemode, lst, num_batches):
         return [list(lst) for _ in range(num_batches)]
     elif gamemode == GameModeEnum.deal:
         random.shuffle(lst)
-        batch_size = (len(lst) + num_batches - 1) // num_batches
+        batch_size = len(lst) // num_batches
         batches = [
             lst[i * batch_size : (i + 1) * batch_size] for i in range(num_batches)
         ]
@@ -473,7 +473,7 @@ async def skip_card(data: CardActionInput):
             cursor.execute(update_query, (idappuser,))
             connection.commit()
 
-    except (Exception, psycopg2.Error) as error:
+    except psycopg2.Error as error:
         print("Error connecting to PostgreSQL:", error)
         raise HTTPException(status_code=500, detail=f"Database error: {str(error)}")
 

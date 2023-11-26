@@ -14,6 +14,11 @@ export default function GameCardModal({
   const [isLoading, setIsLoading] = useState(false);
   const [title, setTitle] = useState(card.title);
   const [description, setDescription] = useState(card.description);
+  const [selectedPerformer, setSelectedPerformer] = useState("");
+
+  const handleSelect = (event) => {
+    setSelectedPerformer(event.target.value);
+  };
 
   const fastAPIClient = new FastAPIClient();
   const userId = getUserId();
@@ -39,12 +44,23 @@ export default function GameCardModal({
       });
       return;
     }
+    if (Object.keys(participants).length > 1 && !selectedPerformer) {
+      toast("Select who should do it first.", {
+        type: "error",
+        autoClose: 2000,
+        hideProgressBar: true,
+      });
+      return;
+    }
     setIsLoading(true);
     try {
       let body = {
         external_id: userId,
         idgame_card: card.idgame_card,
-        performers: participants ? Object.keys(participants) : [],
+        performers:
+          Object.keys(participants).length === 1
+            ? Object.keys(participants)
+            : [selectedPerformer],
       };
       if (card.wildcard) {
         body.title = title;
@@ -140,7 +156,7 @@ export default function GameCardModal({
         refreshPage();
       } else {
         console.error("Failed skip card: " + response.error);
-        toast("Failed skip card", {
+        toast("Failed skip card: " + JSON.parse(response.error).detail, {
           className: "toast-error",
           autoClose: 1000,
           hideProgressBar: true,
@@ -206,6 +222,21 @@ export default function GameCardModal({
         </button>
         {card.playable && (
           <div>
+            {Object.keys(participants).length > 1 && (
+              <div className="performer-dropdown">
+                <select value={selectedPerformer} onChange={handleSelect}>
+                  <option key="empty" value="empty">
+                    Who should do it?
+                  </option>
+                  {participants &&
+                    Object.keys(participants).map((username) => (
+                      <option key={username} value={username}>
+                        {username}
+                      </option>
+                    ))}
+                </select>
+              </div>
+            )}
             <button
               onClick={handlePlayCardClick}
               className="play-card-button"

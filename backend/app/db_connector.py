@@ -43,7 +43,7 @@ def get_idappuser(cursor, external_id: str):
 
 def get_idappuser_by_email(cursor, email: str):
     get_query = sql.SQL(
-        "SELECT idappuser FROM appuser WHERE deleted = FALSE AND email = %s LIMIT 1"
+        "SELECT idappuser FROM appuser WHERE deleted = FALSE AND username = %s LIMIT 1"
     )
     cursor.execute(get_query, (email,))
     appuser = cursor.fetchone()

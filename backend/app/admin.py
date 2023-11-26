@@ -119,8 +119,8 @@ async def update_common_decks_and_cards(data: DecksAndCardsUpdateInput):
             for deck in data.decks:
                 if deck.iddeck < 0 and deck.created:
                     insert_query = """
-                        INSERT INTO deck (title, description, updatedby)
-                        VALUES (%s, %s, %s) RETURNING iddeck
+                        INSERT INTO deck (title, description, updatedby, createdby)
+                        VALUES (%s, %s, %s, %s) RETURNING iddeck
                     """
                     cursor.execute(
                         insert_query,
