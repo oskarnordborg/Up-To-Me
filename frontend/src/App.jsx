@@ -31,7 +31,6 @@ class App extends Component {
       appId: ONESIGNAL_APP_ID,
       allowLocalhostAsSecureOrigin: true,
     });
-    OneSignal.Notifications.requestPermission();
   }
 
   render() {

@@ -5,12 +5,15 @@ import "./UserPage.css";
 import { getUserId } from "../components/RequireAuth";
 import FastAPIClient from "../services/FastAPIClient";
 
+import OneSignal from "react-onesignal";
+
 export default function UserPage() {
   const { startemail } = useParams();
   const usernameRef = useRef();
   const userRef = useRef();
   const firstNameRef = useRef();
   const lastNameRef = useRef();
+  const [isLoading, setIsLoading] = useState("");
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [firstName, setFirstName] = useState("");
@@ -19,17 +22,13 @@ export default function UserPage() {
 
   const fastAPIClient = new FastAPIClient();
   const userId = getUserId();
-  let madeInitialCall = false;
 
   useEffect(() => {
-    if (madeInitialCall) {
-      return;
-    }
-    madeInitialCall = true;
     fetchUserInfo(userId);
-  }, [madeInitialCall]);
+  }, []);
 
   const fetchUserInfo = async (userId) => {
+    setIsLoading(true);
     try {
       const response = await fastAPIClient.get(
         `/appuser/?external_id=${userId}`
@@ -48,6 +47,8 @@ export default function UserPage() {
     } catch (error) {
       console.error("An error occurred while fetching data:", error);
     }
+
+    setIsLoading(false);
   };
 
   const updateAppUser = async () => {
@@ -83,9 +84,17 @@ export default function UserPage() {
       });
     }
   };
+  const requestPermission = async () => {
+    OneSignal.Notifications.requestPermission();
+  };
 
   return (
     <section>
+      {!isLoading && !OneSignal.Notifications.permission && (
+        <button onClick={requestPermission} className="update-button">
+          Enable push notifications
+        </button>
+      )}
       <h1 className="registration-heading">User info</h1>
       <div className="input-container">
         <label htmlFor="username">Username</label>
