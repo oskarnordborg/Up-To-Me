@@ -26,11 +26,6 @@ class App extends Component {
     link.rel = "manifest";
     link.href = "/manifest.json";
     document.head.appendChild(link);
-
-    await OneSignal.init({
-      appId: ONESIGNAL_APP_ID,
-      allowLocalhostAsSecureOrigin: true,
-    });
   }
 
   render() {
