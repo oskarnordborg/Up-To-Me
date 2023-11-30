@@ -20,7 +20,6 @@ import OneSignal from "react-onesignal";
 
 const ONESIGNAL_APP_ID = process.env.REACT_APP_ONESIGNAL_APP_ID;
 
-let hasLoaded = false;
 class App extends Component {
   async componentDidMount() {
     const link = document.createElement("link");
@@ -28,20 +27,11 @@ class App extends Component {
     link.href = "/manifest.json";
     document.head.appendChild(link);
 
-    if (!hasLoaded) {
-      hasLoaded = true;
-      OneSignal.Slidedown.promptPush({ force: true });
-      OneSignal.Notifications.addEventListener(
-        "notificationDisplay",
-        (event) => {
-          console.log("OneSignal notification displayed:", event);
-        }
-      );
-
-      OneSignal.Notifications.addEventListener("notificationClick", (event) => {
-        console.log("OneSignal notification clicked:", event);
-      });
-    }
+    await OneSignal.init({
+      appId: ONESIGNAL_APP_ID,
+      allowLocalhostAsSecureOrigin: true,
+    });
+    OneSignal.Notifications.requestPermission();
   }
 
   render() {
