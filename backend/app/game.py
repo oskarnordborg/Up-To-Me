@@ -5,6 +5,7 @@ from typing import List
 import psycopg2
 from app import db_connector
 from app.api_classes import Game, GameCard
+from app.helpers import onesignal_helper
 from fastapi import APIRouter, HTTPException
 from psycopg2 import sql
 from psycopg2.extras import execute_values
@@ -378,8 +379,10 @@ async def play_card(data: PlayCardInput):
     try:
         with psycopg2.connect(**db_connection_params) as connection:
             cursor = connection.cursor()
-            idappuser = db_connector.get_idappuser(cursor, external_id=data.external_id)
-            idperformer = db_connector.get_idappuser_by_email(
+            idappuser, player_username = db_connector.get_appuser(
+                cursor, external_id=data.external_id
+            )
+            idperformer, performer_onesignal_id = db_connector.get_appuser_by_email(
                 cursor, email=data.performers[0]
             )
 
@@ -404,6 +407,10 @@ async def play_card(data: PlayCardInput):
                 ),
             )
             connection.commit()
+            if performer_onesignal_id:
+                onesignal_helper.send_notification_to_user(
+                    performer_onesignal_id, f"{player_username} says you're up!"
+                )
 
     except (Exception, psycopg2.Error) as error:
         print("Error connecting to PostgreSQL:", error)
@@ -418,7 +425,9 @@ async def confirm_card(data: CardActionInput):
         with psycopg2.connect(**db_connection_params) as connection:
             cursor = connection.cursor()
 
-            idappuser = db_connector.get_idappuser(cursor, external_id=data.external_id)
+            idappuser, _ = db_connector.get_appuser(
+                cursor, external_id=data.external_id
+            )
             update_query = sql.SQL(
                 """
                 UPDATE game_card
@@ -441,7 +450,9 @@ async def skip_card(data: CardActionInput):
     try:
         with psycopg2.connect(**db_connection_params) as connection:
             cursor = connection.cursor()
-            idappuser = db_connector.get_idappuser(cursor, external_id=data.external_id)
+            idappuser, _ = db_connector.get_appuser(
+                cursor, external_id=data.external_id
+            )
             query_skips = """
                 SELECT skips_left
                 FROM game_card

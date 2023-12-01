@@ -28,9 +28,10 @@ def delete_object(table: str, idobject: int, external_id: int):
         connection.commit()
 
 
-def get_idappuser(cursor, external_id: str):
+def get_appuser(cursor, external_id: str):
     get_query = sql.SQL(
-        "SELECT idappuser FROM appuser WHERE deleted = FALSE AND external_id = %s LIMIT 1"
+        "SELECT idappuser, username FROM appuser "
+        "WHERE deleted = FALSE AND external_id = %s LIMIT 1"
     )
     cursor.execute(get_query, (external_id,))
     appuser = cursor.fetchone()
@@ -38,12 +39,13 @@ def get_idappuser(cursor, external_id: str):
     if not appuser:
         raise HTTPException(status_code=422, detail="User not found")
 
-    return appuser[0]
+    return appuser[0], appuser[1]
 
 
-def get_idappuser_by_email(cursor, email: str):
+def get_appuser_by_email(cursor, email: str):
     get_query = sql.SQL(
-        "SELECT idappuser FROM appuser WHERE deleted = FALSE AND username = %s LIMIT 1"
+        "SELECT idappuser, onesignal_id "
+        "FROM appuser WHERE deleted = FALSE AND username = %s LIMIT 1"
     )
     cursor.execute(get_query, (email,))
     appuser = cursor.fetchone()
@@ -51,4 +53,4 @@ def get_idappuser_by_email(cursor, email: str):
     if not appuser:
         raise HTTPException(status_code=422, detail="User not found")
 
-    return appuser[0]
+    return appuser[0], appuser[1]

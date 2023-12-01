@@ -15,6 +15,7 @@ class AppUserInput(BaseModel):
     email: str
     firstname: str
     lastname: str
+    onesignal_id: str
 
 
 @router.get("/appusers/")
@@ -48,7 +49,7 @@ async def get_appuser(external_id: str):
             cursor = connection.cursor()
 
             get_query = sql.SQL(
-                "SELECT idappuser, username, email, firstname, lastname "
+                "SELECT idappuser, username, email, firstname, lastname, onesignal_id "
                 "FROM appuser WHERE external_id = %s LIMIT 1"
             )
 
@@ -58,7 +59,8 @@ async def get_appuser(external_id: str):
             if not appuser:
                 insert_query = sql.SQL(
                     "INSERT INTO appuser (external_id) VALUES (%s) "
-                    "RETURNING idappuser, username, email, firstname, lastname"
+                    "RETURNING idappuser, username, email, firstname, lastname, "
+                    "onesignal_id"
                 )
                 cursor.execute(insert_query, (external_id,))
                 connection.commit()
@@ -108,6 +110,7 @@ async def get_appuser(external_id: str):
             "email": appuser[2],
             "firstname": appuser[3],
             "lastname": appuser[4],
+            "onesignal_id": appuser[5],
             "statistics": stats_dict,
         }
         if appuser
@@ -120,7 +123,6 @@ async def search_appuser(term: str, external_id: str):
     try:
         with psycopg2.connect(**db_connection_params) as connection:
             cursor = connection.cursor()
-            db_connector.get_idappuser(cursor, external_id=external_id)
 
             get_query = sql.SQL(
                 "SELECT idappuser, username FROM appuser WHERE username ILIKE %s "
@@ -209,12 +211,20 @@ async def update_appuser(data: AppUserInput):
                     status_code=400, detail="Username already registered"
                 )
             update_query = sql.SQL(
-                "UPDATE appuser SET username = %s, email = %s, firstname = %s, lastname = %s "
+                "UPDATE appuser SET username = %s, email = %s, firstname = %s, "
+                "lastname = %s, onesignal_id = %s "
                 "WHERE external_id = %s"
             )
             cursor.execute(
                 update_query,
-                (data.username, data.email, data.firstname, data.lastname, data.userid),
+                (
+                    data.username,
+                    data.email,
+                    data.firstname,
+                    data.lastname,
+                    data.onesignal_id,
+                    data.userid,
+                ),
             )
             connection.commit()
 

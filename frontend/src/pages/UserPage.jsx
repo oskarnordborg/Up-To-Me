@@ -18,6 +18,7 @@ export default function UserPage() {
   const [email, setEmail] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [onesignalId, setOnesignalId] = useState("");
   const [statistics, setStatistics] = useState({});
 
   const fastAPIClient = new FastAPIClient();
@@ -40,6 +41,10 @@ export default function UserPage() {
           setFirstName(response.firstname || "");
           setLastName(response.lastname || "");
           setStatistics(response.statistics || {});
+          if (!response.onesignal_id && OneSignal.User.PushSubscription.id) {
+            response.onesignal_id = OneSignal.User.PushSubscription.id;
+            updateAppUser(response);
+          }
         }
       } else {
         console.error("Failed to fetch user data: " + response.error);
@@ -51,14 +56,15 @@ export default function UserPage() {
     setIsLoading(false);
   };
 
-  const updateAppUser = async () => {
+  const updateAppUser = async (data = undefined) => {
     try {
       const response = await fastAPIClient.put(`/appuser/`, {
         userid: userId,
-        username: username,
-        email: email,
-        firstname: firstName,
-        lastname: lastName,
+        username: data?.username || username,
+        email: data?.email || email,
+        firstname: data?.firstname || firstName,
+        lastname: data?.lastname || lastName,
+        onesignal_id: data?.onesignal_id || onesignalId,
       });
       if (!response.error) {
         toast("Updated info", {
