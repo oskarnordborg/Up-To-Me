@@ -134,7 +134,7 @@ async def register(request_data: RegisterInput):
             """
             )
 
-            cursor.execute(get_query, (response_data.username,))
+            cursor.execute(get_query, (request_data.username,))
             exists = cursor.fetchone()[0]
             if exists:
                 raise HTTPException(
@@ -142,6 +142,7 @@ async def register(request_data: RegisterInput):
                 )
 
     except (Exception, psycopg2.Error) as error:
+        print(str(error))
         raise HTTPException(status_code=500, detail=f"Database error: {str(error)}")
 
     new_user_id = str(uuid.uuid4())
