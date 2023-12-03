@@ -1,5 +1,6 @@
+
 [tool.poetry]
-name = "adventofcode"
+name = "uptome"
 version = "0.1.0"
 description = ""
 authors = ["Oskar Nordborg <47498943+oskarnordborg@users.noreply.github.com>"]
