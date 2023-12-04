@@ -28,28 +28,27 @@ export default function RegisterPage() {
     setErrMsg("");
   }, [email]);
 
+  const fastAPIClient = new FastAPIClient();
+
   const createAppUser = async (userid) => {
     try {
-      await fetch(apiUrl + `/appuser/`, {
-        method: "post",
-        body: JSON.stringify({
-          userid: userid,
-          email: email,
-          firstname: firstName,
-          lastname: lastName,
-        }),
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
+      return await fastAPIClient.post(`/appuser/`, {
+        userid: userid,
+        username: username,
+        email: email,
+        firstname: firstName,
+        lastname: lastName,
       });
-    } catch (error) {}
+    } catch (error) {
+      toast(error.message, {
+        className: "error",
+      });
+    }
   };
 
   const handleSubmit = async (e) => {
     let registerToken = null;
     try {
-      const fastAPIClient = new FastAPIClient();
       registerToken = await fastAPIClient.register(
         username,
         email,
@@ -78,10 +77,16 @@ export default function RegisterPage() {
           autoClose: 2000,
         });
 
-        createAppUser(registerToken.userid);
-        setTimeout(() => {
+        const resp = await createAppUser(registerToken.userid);
+        if (!resp.error) {
           navigate(`/login/${email}`);
-        }, 2500);
+        } else {
+          toast("Failed to create user: " + resp.error, {
+            type: "error",
+            autoClose: 3000,
+            hideProgressBar: true,
+          });
+        }
       } else {
         toast(`Registration problem ${finalResponse.error?.title || ""}`, {
           type: "error",

@@ -15,7 +15,7 @@ class AppUserInput(BaseModel):
     email: str
     firstname: str
     lastname: str
-    onesignal_id: str
+    onesignal_id: str = None
 
 
 @router.get("/appusers/")
