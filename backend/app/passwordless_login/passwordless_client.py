@@ -28,7 +28,6 @@ class PasswordlessDependency:
 api_config = PasswordlessApiConfig()
 
 
-# Create a FastAPI dependency for your Passwordless functionality
 def get_passwordless_client(
     api_config: PasswordlessApiConfig = Depends(PasswordlessDependency),
 ):

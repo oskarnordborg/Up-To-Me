@@ -1,8 +1,7 @@
 from typing import Optional
 
 import psycopg2
-from app import card, db_connector
-from app.api_classes import CardDeckInfo
+from app import db_connector
 from fastapi import APIRouter, HTTPException, Query
 from psycopg2 import sql
 from pydantic import BaseModel

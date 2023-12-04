@@ -60,6 +60,10 @@
   padding-top: 40px;
 }
 
+.App a {
+  color: rgb(106, 106, 255);
+}
+
 .App-logo {
   height: 40vmin;
   pointer-events: none;

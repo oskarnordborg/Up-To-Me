@@ -16,9 +16,6 @@ import UnauthorizedPage from "./pages/UnauthorizedPage";
 import "react-toastify/dist/ReactToastify.css";
 import "./App.css";
 import NavbarWrapper from "./Navbar";
-import OneSignal from "react-onesignal";
-
-const ONESIGNAL_APP_ID = process.env.REACT_APP_ONESIGNAL_APP_ID;
 
 class App extends Component {
   async componentDidMount() {

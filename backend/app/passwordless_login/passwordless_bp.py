@@ -1,12 +1,8 @@
 import os
 
 from dotenv import load_dotenv
-from fastapi import Depends, FastAPI
-from passwordless import (
-    PasswordlessClient,
-    PasswordlessClientBuilder,
-    PasswordlessOptions,
-)
+from fastapi import FastAPI
+from passwordless import PasswordlessClientBuilder, PasswordlessOptions
 
 load_dotenv()
 app = FastAPI()
