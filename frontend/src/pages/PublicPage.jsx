@@ -5,10 +5,14 @@ export default function PublicPage() {
 
       <p>Login to use the app</p>
 
-      <a href="/login">Login</a>
+      <a className="login-links" href="/login">
+        Login
+      </a>
       <br />
       <br />
-      <a href="/register">Register</a>
+      <a className="login-links" href="/register">
+        Register
+      </a>
 
       <br />
       <p>The app works best if you save it as an app. </p>

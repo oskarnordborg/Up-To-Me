@@ -58,8 +58,10 @@ async def login(token: str):
 
         return {"jwt": jwt_helper.create_jwt(payload=response_data, roles=roles)}
     except PasswordlessError as e:
+        print(str(e.problem_details))
         raise HTTPException(status_code=400, detail=e.problem_details)
     except Exception as e:
+        print(str(e))
         raise HTTPException(status_code=400, detail=str(e))
 
 
