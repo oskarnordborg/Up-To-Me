@@ -92,7 +92,9 @@ async def get_appuser(external_id: str):
                 "Avg Cards Per Game",
             ]
 
-            stats_dict = {key: round(val, 2) for key, val in zip(keys, user_stats)}
+            stats_dict = {
+                key: round(val, 2) if val else 0 for key, val in zip(keys, user_stats)
+            }
             # stats_dict["First Card Created"] = str(user_stats[7])[:-10]
 
     except (Exception, psycopg2.Error) as error:
