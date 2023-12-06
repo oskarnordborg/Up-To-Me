@@ -94,6 +94,15 @@ ul.suggestions {
   font-weight: bold;
   margin-bottom: 5px;
 }
+.card-waiting {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 15px;
+  height: 15px;
+  background-color: red;
+  border-radius: 50%;
+}
 .game-participant {
   margin: 0;
   margin-left: 20px;

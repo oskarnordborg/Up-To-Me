@@ -89,6 +89,7 @@ export default function MyGamesPage() {
     >
       <li key={game.idgame} className="game-list-row" id={game.idgame}>
         <p className="game-title">{game.deck}</p>
+        {game.card_waiting && <div className="card-waiting"></div>}
         {!game.accepted && (
           <button
             onClick={() => acceptGame(game.idgame)}

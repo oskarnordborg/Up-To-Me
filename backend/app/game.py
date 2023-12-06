@@ -70,14 +70,27 @@ async def get_games(external_id: str):
 
             cursor.execute(
                 """
-                SELECT g.idgame, g.createdtime, a.username, d.title, ga.accepted
+                SELECT g.idgame, g.createdtime, a.username, d.title, ga.accepted,
+                EXISTS (
+                    SELECT 1
+                    FROM game_card gc
+                    WHERE gc.game = g.idgame
+                        AND gc.performer = (
+                            SELECT idappuser
+                            FROM appuser
+                            WHERE external_id = %s
+                            LIMIT 1
+                        )
+                        AND gc.played_time IS NOT NULL
+                        AND gc.finished_time IS NULL
+                )
                 FROM game AS g
                 INNER JOIN game_appuser AS ga ON g.idgame = ga.game
                 INNER JOIN appuser AS a ON ga.appuser = a.idappuser
                 INNER JOIN deck AS d ON g.deck = d.iddeck
                 WHERE g.deleted = FALSE AND a.external_id = %s
                 """,
-                (external_id,),
+                (external_id, external_id),
             )
             games_data = cursor.fetchall()
 
@@ -115,6 +128,7 @@ async def get_games(external_id: str):
                     "appuser": game_data[2],
                     "deck": game_data[3],
                     "accepted": game_data[4],
+                    "card_waiting": game_data[5],
                     "participants": participants,
                 }
                 games.append(game)
