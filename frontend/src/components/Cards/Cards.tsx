@@ -204,7 +204,7 @@ export default function Cards() {
         />
       )}
       <div className="carousel-slide">
-        <h3>New Card</h3>
+        <h3>New Personal Card</h3>
         <>
           <div className="input-container">
             <label className="new-card-label" htmlFor="title">

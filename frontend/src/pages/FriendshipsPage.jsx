@@ -47,6 +47,7 @@ export default function StartGamePage() {
       console.error("An error occurred while fetching data:", error);
     }
   };
+
   const searchMembers = async (term) => {
     try {
       setIsLoading(true);
@@ -103,6 +104,13 @@ export default function StartGamePage() {
   };
 
   const handleFriendRequest = async (username) => {
+    for (let u of suggestions) {
+      if (u.username === username) {
+        u.friend = true;
+        break;
+      }
+    }
+    setSuggestions([...suggestions]);
     try {
       const response = await fastAPIClient.post(`/friendship/create`, {
         external_id: userId,
@@ -114,12 +122,6 @@ export default function StartGamePage() {
           autoClose: 2000,
           hideProgressBar: true,
         });
-        for (let u in suggestions) {
-          if (u.username === username) {
-            u.friend = true;
-            break;
-          }
-        }
         fetchFriends();
       } else {
         console.error("Failed to fetch friends data: " + response.error);
@@ -134,6 +136,15 @@ export default function StartGamePage() {
     }
   };
   const handleConfirmFriend = async (username) => {
+    console.log(pendingRequests);
+    console.log(username);
+    for (let u of pendingRequests) {
+      if (u.username === username) {
+        u.loading = true;
+        break;
+      }
+    }
+    setPendingRequests([...pendingRequests]);
     try {
       const response = await fastAPIClient.put(`/friendship/accept`, {
         external_id: userId,
@@ -175,17 +186,22 @@ export default function StartGamePage() {
         {pendingRequests.length > 0 ? (
           <div>
             <h3>Waiting for you</h3>
-            {pendingRequests.map((friend, index) => (
-              <li key={index}>
-                {friend.username}
-                <button
-                  onClick={() => handleConfirmFriend(friend.username)}
-                  className="friend-request-button"
-                >
-                  Confirm
-                </button>
-              </li>
-            ))}
+            <ul className="friend-list" id="friend-list">
+              {pendingRequests.map((friend, index) => (
+                <li key={index}>
+                  {friend.username}
+                  <button
+                    onClick={() => handleConfirmFriend(friend.username)}
+                    disabled={friend.loading}
+                    className={`friend-request-button ${
+                      friend.loading ? "disabled" : "enabled"
+                    }`}
+                  >
+                    {friend.loading ? "Confirming..." : "Confirm"}
+                  </button>
+                </li>
+              ))}
+            </ul>
           </div>
         ) : null}
         <p
@@ -221,7 +237,8 @@ export default function StartGamePage() {
               {!suggestion.friend && (
                 <button
                   onClick={() => handleFriendRequest(suggestion.username)}
-                  className="friend-request-button"
+                  className="friend-request-button enabled"
+                  id={suggestion.username}
                 >
                   + Add Friend
                 </button>

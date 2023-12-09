@@ -78,6 +78,37 @@ async def get_friendships(external_id: str):
     return {"pending": pending, "friends": friends}
 
 
+@router.get("/friends/")
+async def get_friends(external_id: str):
+    try:
+        with psycopg2.connect(**db_connection_params) as connection:
+            cursor = connection.cursor()
+
+            get_friends_query = sql.SQL(
+                """
+                SELECT
+                    CASE
+                        WHEN f.appuser1 = au.idappuser THEN au2.username
+                        ELSE au1.username
+                    END AS friend_username
+                FROM friendship f
+                INNER JOIN
+                    appuser au ON f.appuser1 = au.idappuser OR f.appuser2 = au.idappuser
+                LEFT JOIN appuser au1 ON f.appuser1 = au1.idappuser
+                LEFT JOIN appuser au2 ON f.appuser2 = au2.idappuser
+                WHERE au.external_id = %s AND f.accepted = TRUE
+                """
+            )
+            cursor.execute(get_friends_query, (external_id,))
+            friendships = cursor.fetchall() or []
+            friends = [{"username": friendship[0]} for friendship in friendships]
+
+    except (Exception, psycopg2.Error) as error:
+        raise HTTPException(status_code=500, detail=f"Database error: {str(error)}")
+
+    return {"friends": friends}
+
+
 @router.post("/friendship/create", response_model=None)
 async def create_friendship(friendship_data: FriendshipUpdate):
     try:

@@ -128,13 +128,18 @@ ul.friend-list {
 .friend-request-button {
   position: fixed;
   right: 20px;
-  background-color: #288b21;
   color: white;
   border: none;
   padding: 3px 5px;
   border-radius: 5px;
   cursor: pointer;
   font-size: 14px;
+}
+.friend-request-button.enabled {
+  background-color: #288b21;
+}
+.friend-request-button.disabled {
+  background-color: #464646;
 }
 .my-friends {
   background-color: rgb(89, 89, 89);

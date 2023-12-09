@@ -129,8 +129,8 @@ async def search_appuser(term: str, external_id: str):
                     FROM friendship
                     LEFT JOIN appuser au1 ON au1.idappuser = friendship.appuser1
                     LEFT JOIN appuser au2 ON au2.idappuser = friendship.appuser2
-                    WHERE (au1.external_id = %s AND au2.username ILIKE %s)
-                    OR (au2.external_id = %s AND au1.username ILIKE %s)
+                    WHERE (au1.external_id = %s AND au2.username = appuser.username)
+                    OR (au2.external_id = %s AND au1.username = appuser.username)
                 )
                 FROM appuser
                 WHERE external_id != %s AND username ILIKE %s
@@ -141,9 +141,7 @@ async def search_appuser(term: str, external_id: str):
                 get_query,
                 (
                     external_id,
-                    f"{term}%",
                     external_id,
-                    f"{term}%",
                     external_id,
                     f"{term}%",
                 ),

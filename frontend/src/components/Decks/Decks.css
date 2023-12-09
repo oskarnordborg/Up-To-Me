@@ -19,21 +19,28 @@
   background-color: #ededed;
   border: 1px solid #ccc;
   border-radius: 5px;
-  padding: 20px;
+  padding: 10px;
   height: 180px;
   text-align: center;
   box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
 }
 
-.deck-item h3 {
-  font-size: 24px;
+.deck-item h3,
+.deck-item p {
+  font-size: 16px;
   margin: 0;
   color: #333;
 }
 
-.deck-item p {
-  font-size: 16px;
+.deck-content {
   color: #666;
+  display: -webkit-box;
+  max-height: 170px;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  -webkit-line-clamp: unset;
+  -webkit-box-orient: vertical;
 }
 
 .deck-item img {

@@ -19,6 +19,7 @@ export default function StartGamePage() {
   const [selectedParticipants, setSelectedParticipants] = useState([]);
   const [selectedDeck, setSelectedDeck] = useState(null);
   const [openGameSettings, setOpenGameSettings] = useState(null);
+  const [friends, setFriends] = useState([]);
   const navigate = useNavigate();
 
   const fastAPIClient = new FastAPIClient();
@@ -29,17 +30,44 @@ export default function StartGamePage() {
   };
 
   useEffect(() => {
+    fetchFriends(true);
     document.addEventListener("click", handleClickOutside);
     return () => {
       document.removeEventListener("click", handleClickOutside);
     };
   }, []);
 
+  const fetchFriends = async (setSuggestions = false) => {
+    try {
+      const response = await fastAPIClient.get(
+        `/friends/?external_id=${userId}`
+      );
+      if (!response.error) {
+        setFriends(response.friends);
+        if (setSuggestions) {
+          setFilteredSuggestions(response.friends);
+        }
+      } else {
+        console.error("Failed to fetch friends data: " + response.error);
+        toast("Failed to fetch friends data: " + response.error, {
+          type: "error",
+          autoClose: 2000,
+          hideProgressBar: true,
+        });
+      }
+    } catch (error) {
+      console.error("An error occurred while fetching data:", error);
+    }
+  };
+
   const handleClickOutside = (e) => {
-    if (suggestionsRef.current && !suggestionsRef.current.contains(e.target)) {
-      setSuggestions([]);
-      setFilteredSuggestions([]);
-      const suggestionsList = document.getElementById("suggestions");
+    const memberInput = document.getElementById("search-members-input");
+    if (
+      suggestionsRef.current &&
+      !suggestionsRef.current.contains(e.target) &&
+      !memberInput.contains(e.target)
+    ) {
+      const suggestionsList = document.getElementById("suggestion-list");
       suggestionsList.style.display = "none";
     }
   };
@@ -62,79 +90,15 @@ export default function StartGamePage() {
       return;
     }
     openGameSettingsModal();
-    // try {
-    //   const response = await fastAPIClient.post("/game/", {
-    //     external_id: userId,
-    //     deck: selectedDeck,
-    //     participants: selectedParticipants.map((item) => item.idappuser),
-    //   });
-    //   if (!response.error) {
-    //     toast("Game created!", {
-    //       className: "toast-success",
-    //       autoClose: 1000,
-    //       hideProgressBar: true,
-    //     });
-    //     setTimeout(() => {
-    //       navigate(`/mygames`);
-    //     }, 2500);
-    //     setIsLoading(false);
-    //   } else {
-    //     console.error("Failed to start game: " + response.error);
-    //     toast("Game created!", {
-    //       className: "toast-error",
-    //       autoClose: 1000,
-    //       hideProgressBar: true,
-    //     });
-    //   }
-    // } catch (error) {
-    //   console.error("An error occurred while fetching data:", error);
-    // }
-    // setIsLoading(false);
   };
 
-  const searchMembers = async (term) => {
-    try {
-      setIsLoading(true);
-      const response = await fastAPIClient.get(
-        `/appuser/search?term=${term}&external_id=${userId}`
-      );
-      if (!response.error) {
-        setSuggestions(response.appusers || []);
-        if (!response.appusers) {
-          const suggestionsList = document.getElementById("suggestions");
-          suggestionsList.style.display = "none";
-        }
-        setIsLoading(false);
-        return response.appusers || [];
-      } else {
-        console.error("Failed to search");
-        toast("Failed to search: " + response.error, {
-          className: "toast-error",
-          autoClose: 1000,
-          hideProgressBar: true,
-        });
-      }
-    } catch (error) {
-      console.error("An error occurred while fetching data:", error);
-    }
-    setIsLoading(false);
+  const handleSearchFocus = () => {
+    const suggestionsList = document.getElementById("suggestion-list");
+    suggestionsList.style.display = "block";
   };
 
   const handleInputChange = async (searchTerm) => {
-    if (searchTerm === "") {
-      setSuggestions([]);
-      setFilteredSuggestions([]);
-      setSearchedChar("");
-      return;
-    }
-    const suggestionsList = document.getElementById("suggestions");
-    suggestionsList.style.display = searchTerm !== "" ? "block" : "none";
-    let sugg = suggestions;
-    if (searchTerm[0] !== searchedChar) {
-      setSearchedChar(searchTerm[0]);
-      sugg = await searchMembers(searchTerm[0]);
-    }
-
+    let sugg = friends;
     const updatedSuggestions = sugg.filter((suggestion) =>
       suggestion.username.toLowerCase().startsWith(searchTerm.toLowerCase())
     );
@@ -151,7 +115,7 @@ export default function StartGamePage() {
     }
     setSuggestions([]);
     setSearchTerm("");
-    const suggestionsList = document.getElementById("suggestions");
+    const suggestionsList = document.getElementById("suggestion-list");
     suggestionsList.style.display = "none";
   };
 
@@ -184,13 +148,14 @@ export default function StartGamePage() {
           />
         )}
         <div className="input-container">
-          <label htmlFor="members">Search Members</label>
+          <label htmlFor="search-members-input">Search Friends</label>
           <div>
             <input
               type="text"
-              id="members"
+              id="search-members-input"
               autoComplete="off"
               value={searchTerm}
+              onFocus={handleSearchFocus}
               onChange={(e) => {
                 setSearchTerm(e.target.value);
                 handleInputChange(e.target.value);
@@ -201,12 +166,21 @@ export default function StartGamePage() {
             />
             {isLoading && <div className="spinner-search"></div>}
           </div>
-          <ul className="suggestions" id="suggestions" ref={suggestionsRef}>
-            {filteredSuggestions.map((suggestion, index) => (
-              <li key={index} onClick={() => handleSelectItem(suggestion)}>
-                {suggestion.username}
+          <ul className="suggestions" id="suggestion-list" ref={suggestionsRef}>
+            {filteredSuggestions.length > 0 ? (
+              filteredSuggestions.map((suggestion, index) => (
+                <li key={index} onClick={() => handleSelectItem(suggestion)}>
+                  {suggestion.username}
+                </li>
+              ))
+            ) : (
+              <li>
+                No hits&nbsp;&nbsp;
+                <a className="find-friends-link" href="/friendships">
+                  Find more friends?
+                </a>
               </li>
-            ))}
+            )}
           </ul>
         </div>
         <div className="selected-items">

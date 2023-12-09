@@ -69,7 +69,6 @@ ul {
 }
 
 ul.suggestions {
-  display: none;
   position: absolute;
   list-style: none;
   margin: 0;
@@ -126,4 +125,7 @@ ul.suggestions {
   border-radius: 5px;
   font-size: 16px;
   width: 90%;
+}
+.find-friends-link {
+  color: #0077ff;
 }

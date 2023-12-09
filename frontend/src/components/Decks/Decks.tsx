@@ -128,7 +128,7 @@ export default function Decks() {
       className="deck-item"
       style={deckItemStyle}
     >
-      <div>
+      <div className="deck-content">
         <h3>{deck.title}</h3>
         <p>{deck.description}</p>
         {deck.userdeck && <div className="user-deck-stamp">User deck</div>}
@@ -156,7 +156,7 @@ export default function Decks() {
     <div className="Decks-main" {...swipeHandlers}>
       <div className="decks-grid">{decks.map((deck) => renderDeck(deck))}</div>
       <div className="carousel-slide">
-        <h3>New Deck</h3>
+        <h3>New Personal Deck</h3>
         <div className="input-container">
           <label className="new-card-label" htmlFor="title">
             Title
