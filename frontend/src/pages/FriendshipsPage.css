@@ -1,0 +1,142 @@
+.success-heading {
+  font-size: 24px;
+  color: green;
+}
+
+.success-paragraph {
+  font-size: 16px;
+  color: #333;
+}
+
+.error-message {
+  font-size: 16px;
+  color: red;
+}
+
+.visible {
+  display: block;
+}
+
+.hidden {
+  display: none;
+}
+
+.sign-in-heading {
+  font-size: 24px;
+  color: #d9d9d9;
+}
+
+.game-settings-button {
+  position: fixed;
+  background-color: #288b21;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  bottom: 20px;
+  right: 20px;
+  cursor: pointer;
+  font-size: 16px;
+  z-index: -1;
+}
+
+.need-register {
+  color: #d9d9d9;
+}
+
+.line {
+  text-align: center;
+}
+
+.signup-link {
+  color: #0077ff;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+label {
+  color: #d9d9d9;
+}
+
+ul {
+  list-style-type: none;
+  color: white;
+}
+
+.remove-selected {
+  color: red;
+  font-size: 24px;
+}
+
+ul.friend-list {
+  position: absolute;
+  list-style: none;
+  overflow-y: auto;
+  text-align: left;
+  display: contents;
+}
+.friend-list li {
+  padding: 10px;
+  border: 2px solid rgba(212, 212, 212, 0.334);
+  border-radius: 5px;
+  margin: 2px;
+}
+
+.spinner-search {
+  position: relative;
+  top: -30px;
+  right: 20px;
+  transform: translate(-50%, -50%);
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  border-top: 4px solid #0077ff;
+  border-radius: 50%;
+  width: 15px;
+  height: 15px;
+  float: right;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+.selected-items {
+  padding-bottom: 100px;
+  padding-left: 10px;
+  text-align: left;
+}
+
+.selected-items ul {
+  padding-left: 10px;
+}
+
+.selected-items li {
+  padding-bottom: 10px;
+}
+
+.input-field {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 16px;
+  width: 90%;
+}
+.friend-request-button {
+  position: fixed;
+  right: 20px;
+  background-color: #288b21;
+  color: white;
+  border: none;
+  padding: 3px 5px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+}
+.my-friends {
+  background-color: rgb(89, 89, 89);
+  padding: 2px;
+}

@@ -122,11 +122,32 @@ async def search_appuser(term: str, external_id: str):
             cursor = connection.cursor()
 
             get_query = sql.SQL(
-                "SELECT idappuser, username FROM appuser WHERE username ILIKE %s "
-                "AND external_id != %s"
+                """
+                SELECT idappuser, username,
+                EXISTS (
+                    SELECT 1
+                    FROM friendship
+                    LEFT JOIN appuser au1 ON au1.idappuser = friendship.appuser1
+                    LEFT JOIN appuser au2 ON au2.idappuser = friendship.appuser2
+                    WHERE (au1.external_id = %s AND au2.username ILIKE %s)
+                    OR (au2.external_id = %s AND au1.username ILIKE %s)
+                )
+                FROM appuser
+                WHERE external_id != %s AND username ILIKE %s
+            """
             )
 
-            cursor.execute(get_query, (f"{term}%", external_id))
+            cursor.execute(
+                get_query,
+                (
+                    external_id,
+                    f"{term}%",
+                    external_id,
+                    f"{term}%",
+                    external_id,
+                    f"{term}%",
+                ),
+            )
             appusers = cursor.fetchall()
 
     except (Exception, psycopg2.Error) as error:
@@ -137,6 +158,7 @@ async def search_appuser(term: str, external_id: str):
             {
                 "idappuser": appuser[0],
                 "username": appuser[1],
+                "friend": appuser[2],
             }
             for appuser in appusers
         ]

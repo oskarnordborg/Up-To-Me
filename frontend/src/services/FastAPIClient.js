@@ -92,7 +92,7 @@ export default class FastApiClient {
       return { error: message };
     }
   }
-  async post(url, body) {
+  async post(url, body = {}) {
     try {
       const response = await fetch(`${BACKEND_URL}${url}`, {
         method: "post",

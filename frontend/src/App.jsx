@@ -10,6 +10,7 @@ import MyGamesPage from "./pages/MyGamesPage";
 import StartGamePage from "./pages/StartGamePage";
 import GamePage from "./pages/GamePage";
 import RegisterPage from "./pages/RegisterPage";
+import FriendshipsPage from "./pages/FriendshipsPage";
 import RequireAuth from "./components/RequireAuth";
 import { ROLE_ADMIN, ROLE_USER } from "./constants/Roles";
 import UnauthorizedPage from "./pages/UnauthorizedPage";
@@ -64,6 +65,7 @@ class App extends Component {
             <Route element={<RequireAuth allowedRoles={[ROLE_USER]} />}>
               <Route path="/user/:startemail?" element={<UserPage />} />
             </Route>
+            <Route path="/friendships" element={<FriendshipsPage />} />
 
             <Route element={<RequireAuth allowedRoles={[ROLE_ADMIN]} />}>
               <Route path="/admin" element={<AdminPage />} />

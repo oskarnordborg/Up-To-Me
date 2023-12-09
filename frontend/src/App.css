@@ -102,9 +102,13 @@
 .start-game-link {
   text-decoration: none;
   color: white;
+  background-color: rgba(220, 220, 220, 0.127);
   cursor: pointer;
   position: absolute;
-  right: 130px;
+  right: 70px;
+  border: 2px solid rgba(220, 220, 220, 0.504);
+  border-radius: 5px;
+  padding: 1px 5px 3px 5px;
 }
 
 .start-game-link:hover {

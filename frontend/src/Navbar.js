@@ -68,6 +68,9 @@ const Navbar = () => {
               <a href="/user">User Page</a>
             </li>
             <li>
+              <a href="/friendships">Friends Page</a>
+            </li>
+            <li>
               <a href="/admin">Admin</a>
             </li>
           </>

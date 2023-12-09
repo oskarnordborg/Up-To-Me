@@ -54,3 +54,17 @@ def get_appuser_by_email(cursor, email: str):
         raise HTTPException(status_code=422, detail="User not found")
 
     return appuser[0], appuser[1]
+
+
+def get_appuser_by_username(cursor, username: str):
+    get_query = sql.SQL(
+        "SELECT idappuser, onesignal_id "
+        "FROM appuser WHERE deleted = FALSE AND username = %s LIMIT 1"
+    )
+    cursor.execute(get_query, (username,))
+    appuser = cursor.fetchone()
+
+    if not appuser:
+        raise HTTPException(status_code=422, detail="User not found")
+
+    return appuser[0], appuser[1]

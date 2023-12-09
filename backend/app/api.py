@@ -5,7 +5,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.requests import Request
 
-from . import admin, appuser, card, deck, game
+from . import admin, appuser, card, deck, friendship, game
 from .passwordless_login.passwordless_bp import PasswordlessApiBlueprint
 
 app = FastAPI()
@@ -40,6 +40,7 @@ app.middleware("http")(api_key_validation)
 app.include_router(card.router)
 app.include_router(deck.router)
 app.include_router(appuser.router)
+app.include_router(friendship.router)
 app.include_router(game.router)
 app.include_router(admin.router)
 app.include_router(passwordless_api.router)
