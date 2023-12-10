@@ -19,7 +19,7 @@
   justify-content: space-between;
   padding: 10px;
   cursor: pointer;
-  background-color: #f0f0f0;
+  background-color: #ebebeb;
 }
 
 .card-list {
@@ -27,9 +27,7 @@
 }
 
 .card {
-  margin-bottom: 10px;
   padding: 5px;
-  border: 1px solid #ccc;
   border-radius: 4px;
   display: flex;
   justify-content: space-between;
@@ -42,6 +40,7 @@
 .card button {
   margin-left: auto;
   width: 50px;
+  margin-bottom: 3px;
 }
 
 .admin-input {
@@ -72,7 +71,7 @@
 }
 
 .toggle-button {
-  margin-top: 25px;
+  margin-top: 58px;
   padding: 10px;
   padding-right: 20px;
 }
@@ -132,4 +131,7 @@
   font-family: Arial, sans-serif;
   box-sizing: border-box;
   overflow-y: auto;
+}
+.admin-resize-textarea.deck {
+  min-height: 100px;
 }

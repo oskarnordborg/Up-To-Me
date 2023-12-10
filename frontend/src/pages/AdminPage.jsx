@@ -243,15 +243,14 @@ const AdminPage = ({ toggleLoading }) => {
                   }
                   placeholder="Enter deck title"
                 />
-                <input
-                  className="admin-input"
-                  type="text"
+                <textarea
+                  className="admin-resize-textarea deck"
+                  placeholder="Enter card description"
                   value={deck.description}
                   onChange={(e) =>
                     handleDeckChange(deck.iddeck, "description", e.target.value)
                   }
-                  placeholder="Enter deck description"
-                />
+                ></textarea>
               </div>
               <span className="toggle-button">
                 {deck.showCards ? "/\\" : "V"}

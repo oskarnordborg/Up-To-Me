@@ -365,11 +365,11 @@ async def create_game(data: CreateGameInput):
             get_query = sql.SQL(
                 """
                 SELECT onesignal_id FROM appuser
-                WHERE idappuser IN %s
+                WHERE idappuser IN %s AND onesignal_id IS NOT NULL AND onesignal_id <> ''
                 """
             )
             cursor.execute(get_query, (tuple(invited_onesignal_ids),))
-            receivers = [a[0] for a in cursor.fetchall() if a[0]]
+            receivers = [a[0] for a in cursor.fetchall()]
             onesignal_helper.send_notification_to_users(
                 receivers, f"{username} wants to be friends!"
             )
