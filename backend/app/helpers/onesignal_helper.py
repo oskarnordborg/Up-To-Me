@@ -3,7 +3,7 @@ import os
 import requests
 
 
-def send_notification_to_user(user_id, message):
+def send_notification_to_users(user_ids, message):
     headers = {
         "Content-Type": "application/json",
         "Authorization": f"Basic {os.environ['ONESIGNAL_API_KEY']}",
@@ -11,7 +11,7 @@ def send_notification_to_user(user_id, message):
 
     data = {
         "app_id": os.environ["ONESIGNAL_APP_ID"],
-        "include_player_ids": [user_id],
+        "include_player_ids": user_ids,
         "contents": {"en": message},
     }
 

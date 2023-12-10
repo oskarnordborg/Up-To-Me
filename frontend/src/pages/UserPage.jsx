@@ -7,7 +7,7 @@ import FastAPIClient from "../services/FastAPIClient";
 
 import OneSignal from "react-onesignal";
 
-export default function UserPage() {
+export default function UserPage({ toggleLoading }) {
   const { startemail } = useParams();
   const usernameRef = useRef();
   const userRef = useRef();
@@ -29,7 +29,7 @@ export default function UserPage() {
   }, []);
 
   const fetchUserInfo = async (userId) => {
-    setIsLoading(true);
+    toggleLoading(true);
     try {
       const response = await fastAPIClient.get(
         `/appuser/?external_id=${userId}`
@@ -53,10 +53,11 @@ export default function UserPage() {
       console.error("An error occurred while fetching data:", error);
     }
 
-    setIsLoading(false);
+    toggleLoading(false);
   };
 
   const updateAppUser = async (data = undefined) => {
+    toggleLoading(true);
     try {
       const response = await fastAPIClient.put(`/appuser/`, {
         userid: userId,
@@ -89,6 +90,7 @@ export default function UserPage() {
         hideProgressBar: true,
       });
     }
+    toggleLoading(false);
   };
   const requestPermission = async () => {
     OneSignal.Notifications.requestPermission();

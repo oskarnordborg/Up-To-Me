@@ -33,14 +33,14 @@ export default function GameSettingsModal({
         gamemode: selectedGameMode,
       });
       if (!response.error) {
-        toast("Game created!", {
+        toast("Game created! redirecting you", {
           className: "toast-success",
           autoClose: 1000,
           hideProgressBar: true,
         });
         setTimeout(() => {
           navigate(`/mygames`);
-        }, 2500);
+        }, 1000);
         setIsLoading(false);
       } else {
         console.error("Failed to start game: " + response.error);

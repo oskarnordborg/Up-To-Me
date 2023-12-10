@@ -90,7 +90,11 @@ async def get_friends(external_id: str):
                     CASE
                         WHEN f.appuser1 = au.idappuser THEN au2.username
                         ELSE au1.username
-                    END AS friend_username
+                    END AS friend_username,
+                    CASE
+                        WHEN f.appuser1 = au.idappuser THEN au2.idappuser
+                        ELSE au1.idappuser
+                    END AS friend_idappuser
                 FROM friendship f
                 INNER JOIN
                     appuser au ON f.appuser1 = au.idappuser OR f.appuser2 = au.idappuser
@@ -101,7 +105,10 @@ async def get_friends(external_id: str):
             )
             cursor.execute(get_friends_query, (external_id,))
             friendships = cursor.fetchall() or []
-            friends = [{"username": friendship[0]} for friendship in friendships]
+            friends = [
+                {"username": friendship[0], "idappuser": friendship[1]}
+                for friendship in friendships
+            ]
 
     except (Exception, psycopg2.Error) as error:
         raise HTTPException(status_code=500, detail=f"Database error: {str(error)}")
@@ -146,8 +153,8 @@ async def create_friendship(friendship_data: FriendshipUpdate):
             cursor.execute(insert_friendship_query, (appuser1[0], appuser2[0]))
             connection.commit()
 
-            onesignal_helper.send_notification_to_user(
-                appuser2[1], f"{appuser1[1]} wants to be friends!"
+            onesignal_helper.send_notification_to_users(
+                [appuser2[1]], f"{appuser1[1]} wants to be friends!"
             )
     except psycopg2.Error as error:
         print("Error connecting to PostgreSQL:", error)

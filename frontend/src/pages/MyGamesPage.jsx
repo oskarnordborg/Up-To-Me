@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 import "./MyGamesPage.css";
 import FastAPIClient from "../services/FastAPIClient";
 
-export default function MyGamesPage() {
+export default function MyGamesPage({ toggleLoading }) {
   const [games, setGames] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
   const [showSlownessMessage, setShowSlownessMessage] = useState(false);
@@ -23,14 +23,9 @@ export default function MyGamesPage() {
   }, [madeInitialCall]);
 
   const fetchGames = async (userId) => {
-    setRefreshing(true);
-    const timeoutThreshold = 3000;
-    const timeout = setTimeout(() => {
-      setShowSlownessMessage(true);
-    }, timeoutThreshold);
+    toggleLoading(true);
     try {
       const response = await fastAPIClient.get(`/games/?external_id=${userId}`);
-      clearTimeout(timeout);
       if (!response.error) {
         setGames(response.games);
       } else {
@@ -44,7 +39,7 @@ export default function MyGamesPage() {
     } catch (error) {
       console.error("An error occurred while fetching data:", error);
     }
-    setRefreshing(false);
+    toggleLoading(false);
   };
   const handleUpdateAccepted = (idgame) => {
     const updatedGames = games.map((game) => {
@@ -109,25 +104,10 @@ export default function MyGamesPage() {
   );
 
   return (
-    <>
-      {refreshing && (
-        <div className="spinner-container">
-          <div className="spinner" />
-          <div className="slowness-message">
-            {showSlownessMessage && (
-              <div>
-                <p>Sorry for slowness </p>
-                <p>Waking up the server.. </p>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-      <section>
-        <h2>Games </h2>
-        <ul className="game-list">{games.map((game) => renderGame(game))}</ul>
-        <ToastContainer />
-      </section>
-    </>
+    <section>
+      <h2>Games </h2>
+      <ul className="game-list">{games.map((game) => renderGame(game))}</ul>
+      <ToastContainer />
+    </section>
   );
 }

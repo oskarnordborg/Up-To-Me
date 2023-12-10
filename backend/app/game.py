@@ -280,10 +280,13 @@ async def create_game(data: CreateGameInput):
             cursor = connection.cursor()
 
             get_query = sql.SQL(
-                "SELECT idappuser FROM appuser WHERE deleted = FALSE AND external_id = %s LIMIT 1"
+                """
+                SELECT idappuser, username FROM appuser
+                WHERE deleted = FALSE AND external_id = %s LIMIT 1
+                """
             )
             cursor.execute(get_query, (data.external_id,))
-            idappuser = cursor.fetchone()[0]
+            idappuser, username = cursor.fetchone()
 
             data.participants.append(idappuser)
 
@@ -356,6 +359,21 @@ async def create_game(data: CreateGameInput):
 
             connection.commit()
 
+            invited_onesignal_ids = [
+                part for part in data.participants if part != idappuser
+            ]
+            get_query = sql.SQL(
+                """
+                SELECT onesignal_id FROM appuser
+                WHERE idappuser IN %s
+                """
+            )
+            cursor.execute(get_query, (tuple(invited_onesignal_ids),))
+            receivers = [a[0] for a in cursor.fetchall() if a[0]]
+            onesignal_helper.send_notification_to_users(
+                receivers, f"{username} wants to be friends!"
+            )
+
     except (Exception, psycopg2.Error) as error:
         print("Error connecting to PostgreSQL:", error)
         raise HTTPException(status_code=500, detail=f"Database error: {str(error)}")
@@ -422,8 +440,8 @@ async def play_card(data: PlayCardInput):
             )
             connection.commit()
             if performer_onesignal_id:
-                onesignal_helper.send_notification_to_user(
-                    performer_onesignal_id, f"{player_username} says you're up!"
+                onesignal_helper.send_notification_to_users(
+                    [performer_onesignal_id], f"{player_username} says you're up!"
                 )
 
     except (Exception, psycopg2.Error) as error:

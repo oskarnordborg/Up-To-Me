@@ -172,3 +172,10 @@
   position: absolute;
   left: 10px;
 }
+
+.button-enabled {
+  background-color: #288b21;
+}
+.button-disabled {
+  background-color: #464646;
+}

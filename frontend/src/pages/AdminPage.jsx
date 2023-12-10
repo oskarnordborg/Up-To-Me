@@ -5,7 +5,7 @@ import FastAPIClient from "../services/FastAPIClient";
 import "./AdminPage.css";
 import ConfirmDialog from "../components/ConfirmDialog";
 
-const AdminPage = () => {
+const AdminPage = ({ toggleLoading }) => {
   const [decks, setDecks] = useState([]);
   const [deletes, setDeletes] = useState({ decks: [], cards: [] });
   const [newDeckIndex, setNewDeckIndex] = useState(0);

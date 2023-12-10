@@ -8,7 +8,7 @@ import { getUserId } from "../RequireAuth";
 import CardModal from "./CardModal";
 import FastAPIClient from "../../services/FastAPIClient";
 
-export default function Cards() {
+export default function Cards({ toggleLoading }: { toggleLoading: any }) {
   const { iddeck, deckTitle } = useParams();
   const [cards, setCards] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -16,7 +16,6 @@ export default function Cards() {
   const [startY, setStartY] = useState(null);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [showSlownessMessage, setShowSlownessMessage] = useState(false);
   const [selectedCard, setSelectedCard] = useState(null);
 
   const fastAPIClient = new FastAPIClient();
@@ -24,10 +23,7 @@ export default function Cards() {
   let madeInitialCall = false;
 
   const fetchCards = async () => {
-    const timeoutThreshold = 3000;
-    const timeout = setTimeout(() => {
-      setShowSlownessMessage(true);
-    }, timeoutThreshold);
+    toggleLoading(true);
     try {
       let url = `/cards/`;
       if (userId) {
@@ -37,10 +33,8 @@ export default function Cards() {
         url += (userId ? "&" : "?") + `iddeck=${iddeck}`;
       }
       const response = await fastAPIClient.get(url);
-      clearTimeout(timeout);
       if (!response.error) {
         setCards(response.cards);
-        setShowSlownessMessage(false);
       } else {
         console.error("Failed to fetch cards data", response.error);
         toast("Failed to fetch cards data" + response.error, {
@@ -52,7 +46,7 @@ export default function Cards() {
     } catch (error) {
       console.error("An error occurred while fetching data:", error);
     }
-    setRefreshing(false);
+    toggleLoading(false);
   };
 
   useEffect(() => {
@@ -175,22 +169,6 @@ export default function Cards() {
       </div>
     </div>
   );
-
-  if (refreshing) {
-    return (
-      <div className="spinner-container">
-        <div className="spinner" />
-        <div className="slowness-message">
-          {showSlownessMessage && (
-            <div>
-              <p>Sorry for slowness </p>
-              <p>Waking up the server.. </p>
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="Cards-main" {...swipeHandlers}>

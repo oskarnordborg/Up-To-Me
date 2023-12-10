@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { getUserId } from "../components/RequireAuth";
 import { ToastContainer, toast } from "react-toastify";
 
-export default function StartGamePage() {
+export default function StartGamePage({ toggleLoading }) {
   const suggestionsRef = useRef(null);
   const errRef = useRef();
   const [errMsg, setErrMsg] = useState("");
@@ -28,6 +28,9 @@ export default function StartGamePage() {
   }, []);
 
   const fetchFriends = async (userIdParam) => {
+    if (userIdParam) {
+      toggleLoading(true);
+    }
     try {
       const response = await fastAPIClient.get(
         `/friendships/?external_id=${userIdParam || userId}`
@@ -46,6 +49,8 @@ export default function StartGamePage() {
     } catch (error) {
       console.error("An error occurred while fetching data:", error);
     }
+
+    toggleLoading(false);
   };
 
   const searchMembers = async (term) => {

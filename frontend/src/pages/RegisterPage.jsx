@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom";
 
 const apiUrl = process.env.REACT_APP_API_URL;
 
-export default function RegisterPage() {
+export default function RegisterPage({ toggleLoading }) {
   const userRef = useRef();
   const firstNameRef = useRef();
   const lastNameRef = useRef();
@@ -18,6 +18,7 @@ export default function RegisterPage() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [errMsg, setErrMsg] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -47,6 +48,8 @@ export default function RegisterPage() {
   };
 
   const handleSubmit = async (e) => {
+    toggleLoading(true);
+    setIsLoading(true);
     let registerToken = null;
     try {
       registerToken = await fastAPIClient.register(
@@ -93,6 +96,8 @@ export default function RegisterPage() {
         });
       }
     }
+    toggleLoading(false);
+    setIsLoading(false);
   };
 
   return (
@@ -162,8 +167,14 @@ export default function RegisterPage() {
             className="register-input-field"
           />
         </div>
-        <button onClick={handleSubmit} className="registration-button">
-          Register
+        <button
+          onClick={handleSubmit}
+          className={`registration-button ${
+            isLoading ? "button-disabled" : "button-enabled"
+          }`}
+          disabled={isLoading}
+        >
+          {isLoading ? "Registering..." : "Register"}
         </button>
         <br />
         <a className="signup-link" href="/login">

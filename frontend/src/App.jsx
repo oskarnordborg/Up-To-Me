@@ -18,12 +18,41 @@ import "react-toastify/dist/ReactToastify.css";
 import "./App.css";
 import NavbarWrapper from "./Navbar";
 
+const timeoutThreshold = 3000;
+
 class App extends Component {
   async componentDidMount() {
     const link = document.createElement("link");
     link.rel = "manifest";
     link.href = "/manifest.json";
     document.head.appendChild(link);
+  }
+  constructor(props) {
+    super(props);
+    this.state = {
+      loading: false,
+    };
+    this.toggleLoading = this.toggleLoading.bind(this);
+  }
+
+  toggleLoading(isLoading) {
+    if (!isLoading) {
+      clearTimeout(this.state.slownessMessageTimeout);
+      this.setState(() => ({
+        loading: isLoading,
+      }));
+      return;
+    }
+    this.setState(() => ({
+      loading: isLoading,
+    }));
+    this.setState(() => ({
+      slownessMessageTimeout: setTimeout(() => {
+        this.setState(() => ({
+          showSlownessMessage: true,
+        }));
+      }, timeoutThreshold),
+    }));
   }
 
   render() {
@@ -40,37 +69,83 @@ class App extends Component {
                 />
               }
             >
-              <Route path="/" element={<MyGamesPage />} />
+              <Route
+                path="/"
+                element={<MyGamesPage toggleLoading={this.toggleLoading} />}
+              />
             </Route>
-            <Route exact path="/decks" element={<Decks />} />
+            <Route
+              exact
+              path="/decks"
+              element={<Decks toggleLoading={this.toggleLoading} />}
+            />
             <Route
               exact
               path="/cards/:iddeck?/:deckTitle?"
-              element={<Cards />}
+              element={<Cards toggleLoading={this.toggleLoading} />}
             />
-            <Route exact path="/game/:idgame" element={<GamePage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            <Route path="/login/:startemail?" element={<LoginPage />} />
+            <Route
+              exact
+              path="/game/:idgame"
+              element={<GamePage toggleLoading={this.toggleLoading} />}
+            />
+            <Route
+              path="/register"
+              element={<RegisterPage toggleLoading={this.toggleLoading} />}
+            />
+            <Route
+              path="/login/:startemail?"
+              element={<LoginPage toggleLoading={this.toggleLoading} />}
+            />
 
             <Route path="unauthorized" element={<UnauthorizedPage />} />
 
             <Route element={<RequireAuth allowedRoles={[ROLE_USER]} />}>
-              <Route path="/startgame" element={<StartGamePage />} />
+              <Route
+                path="/startgame"
+                element={<StartGamePage toggleLoading={this.toggleLoading} />}
+              />
             </Route>
 
             <Route element={<RequireAuth allowedRoles={[ROLE_USER]} />}>
-              <Route path="/mygames" element={<MyGamesPage />} />
+              <Route
+                path="/mygames"
+                element={<MyGamesPage toggleLoading={this.toggleLoading} />}
+              />
             </Route>
 
             <Route element={<RequireAuth allowedRoles={[ROLE_USER]} />}>
-              <Route path="/user/:startemail?" element={<UserPage />} />
+              <Route
+                path="/user/:startemail?"
+                element={<UserPage toggleLoading={this.toggleLoading} />}
+              />
             </Route>
-            <Route path="/friendships" element={<FriendshipsPage />} />
+            <Route
+              path="/friendships"
+              element={<FriendshipsPage toggleLoading={this.toggleLoading} />}
+            />
 
             <Route element={<RequireAuth allowedRoles={[ROLE_ADMIN]} />}>
-              <Route path="/admin" element={<AdminPage />} />
+              <Route
+                path="/admin"
+                element={<AdminPage toggleLoading={this.toggleLoading} />}
+              />
             </Route>
           </Routes>
+
+          {this.state.loading && (
+            <div className="spinner-container">
+              <div className="spinner" />
+              <div className="slowness-message">
+                {this.state.showSlownessMessage && (
+                  <div>
+                    <p>Sorry for slowness </p>
+                    <p>Waking up the server.. </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </Router>
     );

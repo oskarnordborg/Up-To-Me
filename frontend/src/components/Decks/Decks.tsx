@@ -6,7 +6,7 @@ import { Link } from "react-router-dom";
 import { getUserId } from "../RequireAuth";
 import FastAPIClient from "../../services/FastAPIClient";
 
-export default function Decks() {
+export default function Decks({ toggleLoading }: { toggleLoading: any }) {
   const [decks, setDecks] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -20,13 +20,9 @@ export default function Decks() {
   let madeInitialCall = false;
 
   const fetchDecks = async () => {
-    const timeoutThreshold = 3000;
-    const timeout = setTimeout(() => {
-      setShowSlownessMessage(true);
-    }, timeoutThreshold);
+    toggleLoading(true);
     try {
       const response = await fastAPIClient.get(`/decks/?external_id=${userId}`);
-      clearTimeout(timeout);
       if (!response.error) {
         setDecks(response.decks);
       } else {
@@ -40,7 +36,7 @@ export default function Decks() {
     } catch (error) {
       console.error("An error occurred while fetching data:", error);
     }
-    setRefreshing(false);
+    toggleLoading(false);
   };
 
   useEffect(() => {
@@ -48,7 +44,6 @@ export default function Decks() {
       return;
     }
     madeInitialCall = true;
-    setRefreshing(true);
     fetchDecks();
   }, [madeInitialCall]);
 
@@ -85,7 +80,7 @@ export default function Decks() {
       });
       return;
     }
-    setIsLoading(true);
+    toggleLoading(true);
     try {
       const response = await fastAPIClient.post("/deck/", {
         title: title,
@@ -98,7 +93,6 @@ export default function Decks() {
           autoClose: 1000,
           hideProgressBar: true,
         });
-        setIsLoading(false);
         setTitle("");
         setDescription("");
         fetchDecks();
@@ -113,7 +107,7 @@ export default function Decks() {
     } catch (error) {
       console.error("An error occurred while fetching data:", error);
     }
-    setIsLoading(false);
+    toggleLoading(false);
   };
 
   const deckItemStyle = {
@@ -135,22 +129,6 @@ export default function Decks() {
       </div>
     </Link>
   );
-
-  if (refreshing) {
-    return (
-      <div className="spinner-container">
-        <div className="spinner" />
-        <div className="slowness-message">
-          {showSlownessMessage && (
-            <div>
-              <p>Sorry for slowness </p>
-              <p>Waking up the server.. </p>
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="Decks-main" {...swipeHandlers}>
