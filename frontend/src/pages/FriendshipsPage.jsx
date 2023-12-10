@@ -15,7 +15,6 @@ export default function StartGamePage({ toggleLoading }) {
   const [suggestions, setSuggestions] = useState([]);
   const [filteredSuggestions, setFilteredSuggestions] = useState([]);
   const [selectedParticipants, setSelectedParticipants] = useState([]);
-  const [showSlownessMessage, setShowSlownessMessage] = useState(false);
   const [pendingRequests, setPendingRequests] = useState([]);
   const [friends, setFriends] = useState([]);
   const navigate = useNavigate();

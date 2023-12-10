@@ -122,11 +122,13 @@ async def create_friendship(friendship_data: FriendshipUpdate):
         with psycopg2.connect(**db_connection_params) as connection:
             cursor = connection.cursor()
 
-            get_appuser1_query = """
+            get_appuser1_query = sql.SQL(
+                """
                 SELECT idappuser, username
                 FROM appuser
                 WHERE external_id = %s
             """
+            )
             cursor.execute(get_appuser1_query, (friendship_data.external_id,))
             appuser1 = cursor.fetchone()
             if not appuser1:
@@ -134,11 +136,13 @@ async def create_friendship(friendship_data: FriendshipUpdate):
                     status_code=404, detail="AppUser with this external_id not found"
                 )
 
-            get_appuser2_query = """
+            get_appuser2_query = sql.SQL(
+                """
                 SELECT idappuser, onesignal_id
                 FROM appuser
                 WHERE username ILIKE %s
             """
+            )
             cursor.execute(get_appuser2_query, (friendship_data.username,))
             appuser2 = cursor.fetchone()
             if not appuser2:
@@ -146,10 +150,12 @@ async def create_friendship(friendship_data: FriendshipUpdate):
                     status_code=404, detail="AppUser with this username not found"
                 )
 
-            insert_friendship_query = """
+            insert_friendship_query = sql.SQL(
+                """
                 INSERT INTO friendship (appuser1, appuser2)
                 VALUES (%s, %s)
             """
+            )
             cursor.execute(insert_friendship_query, (appuser1[0], appuser2[0]))
             connection.commit()
 
