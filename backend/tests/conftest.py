@@ -6,6 +6,8 @@ import pytest
 from app.api import app
 from fastapi.testclient import TestClient
 
+from . import db_mock
+
 
 @pytest.fixture(scope="function")
 def test_app(db_connection, session_monkeypatch):
@@ -32,46 +34,25 @@ def db_connection(session_monkeypatch):
     def mock_connect(**kwargs):
         conn = sqlite3.connect(":memory:")
         cursor = conn.cursor()
-        cursor.execute(
-            """
-            CREATE TABLE appuser (
-                idappuser serial PRIMARY KEY,
-                createdtime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updatedtime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                external_id VARCHAR(256),
-                onesignal_id VARCHAR(256) DEFAULT NULL,
-                username VARCHAR ( 256 ) DEFAULT '',
-                email VARCHAR ( 256 ) DEFAULT '',
-                firstname VARCHAR ( 256 ) DEFAULT '',
-                lastname VARCHAR ( 256 ) DEFAULT '',
-                is_admin BOOLEAN DEFAULT FALSE,
-                deleted BOOL DEFAULT FALSE
-            );
-        """
-        )
-
-        cursor.execute(
-            """
-            CREATE TABLE friendship (
-                idfriendship SERIAL PRIMARY KEY,
-                createdtime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                deleted BOOL DEFAULT FALSE,
-                appuser1 INT REFERENCES appuser(idappuser),
-                appuser2 INT REFERENCES appuser(idappuser),
-                accepted BOOL DEFAULT FALSE
-            );
-        """
-        )
+        for table_query in db_mock.tables:
+            cursor.execute(table_query)
 
         cursor.execute(
             "INSERT INTO appuser (external_id, username) VALUES (?, ?)",
             ("sample_id", "sample_user"),
         )
         cursor.execute(
-            "INSERT INTO friendship (appuser1, appuser2) VALUES (?, ?)", (1, 2)
+            "INSERT INTO appuser (external_id, username) VALUES (?, ?)",
+            ("sample_id2", "sample_user2"),
         )
-
         conn.commit()
         return conn
 
     session_monkeypatch.setattr("psycopg2.connect", mock_connect)
+
+    def mock_onesignal(*args):
+        return
+
+    session_monkeypatch.setattr(
+        "app.helpers.onesignal_helper.send_notification_to_users", mock_onesignal
+    )

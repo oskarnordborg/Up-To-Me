@@ -113,7 +113,7 @@ async def create_card(data: CreateCardInput):
 
 
 @router.delete("/card_deck/")
-async def delete_card(idcard_deck: int, external_id: str):
+async def delete_card_deck(idcard_deck: int, external_id: str):
     try:
         db_connector.delete_object(
             table="card_deck", idobject=idcard_deck, external_id=external_id

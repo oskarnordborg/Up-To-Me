@@ -140,7 +140,7 @@ async def create_friendship(friendship_data: FriendshipUpdate):
                 """
                 SELECT idappuser, onesignal_id
                 FROM appuser
-                WHERE username ILIKE %s
+                WHERE username = %s
             """
             )
             cursor.execute(get_appuser2_query, (friendship_data.username,))
