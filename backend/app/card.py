@@ -15,7 +15,7 @@ GET_CARD_FIELDS = ["idcard_deck", "title", "description"]
 class CreateCardInput(BaseModel):
     title: str
     description: str
-    wildcard: bool
+    wildcard: bool = False
     external_id: Optional[str] = None
     deck: Optional[int] = None
 

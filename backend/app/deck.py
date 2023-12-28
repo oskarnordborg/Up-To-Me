@@ -80,7 +80,7 @@ async def create_deck(data: CreateDeckInput):
 
             cursor.execute(
                 insert_query,
-                (data.title, data.description, idappuser, idappuser, idappuser),
+                (data.title, data.description, idappuser, idappuser),
             )
             connection.commit()
 
