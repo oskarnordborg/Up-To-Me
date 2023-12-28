@@ -371,7 +371,7 @@ async def create_game(data: CreateGameInput):
             cursor.execute(get_query, (tuple(invited_onesignal_ids),))
             receivers = [a[0] for a in cursor.fetchall()]
             onesignal_helper.send_notification_to_users(
-                receivers, f"{username} wants to be friends!"
+                receivers, f"{username} wants to play!"
             )
 
     except (Exception, psycopg2.Error) as error:
