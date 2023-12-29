@@ -125,3 +125,9 @@
   border-radius: 5px;
   font-size: 10px;
 }
+
+.game-stats-block {
+  padding-bottom: 5px;
+  margin-bottom: 5px;
+  border-bottom: 2px solid #67676b;
+}

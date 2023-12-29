@@ -7,6 +7,7 @@ class GameParticipant(BaseModel):
     name: str
     accepted: bool
     skips_left: int
+    received_cards: int
 
 
 class Game(BaseModel):

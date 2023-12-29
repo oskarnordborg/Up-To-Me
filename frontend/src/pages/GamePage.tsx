@@ -152,7 +152,7 @@ export default function GamePage({ toggleLoading }: { toggleLoading: any }) {
 
   return (
     <div className="GamePage-main" {...swipeHandlers}>
-      <div>
+      <div className="game-stats-block">
         <div>Game</div>
         <div>Invited: {gameInfo.createdtime}</div>
         <div>
@@ -161,23 +161,29 @@ export default function GamePage({ toggleLoading }: { toggleLoading: any }) {
               <div key={username}>
                 {gameInfo.participants[username].name}{" "}
                 {gameInfo.participants[username].accepted
-                  ? ` ${gameInfo.participants[username].skips_left}/${gameInfo.skips_count} skips left`
+                  ? ` ${gameInfo.participants[username].skips_left}/${gameInfo.skips_count} skips left, ${gameInfo.participants[username].received_cards} received`
                   : " - invited"}
               </div>
             ))}
         </div>
       </div>
-      In Play
-      <div className="game-cards-grid">
-        {cardsInPlay.map((card) => renderCard(card, false))}
+      <div className="game-stats-block">
+        In Play
+        <div className="game-cards-grid">
+          {cardsInPlay.map((card) => renderCard(card, false))}
+        </div>
       </div>
-      To Play
-      <div className="game-cards-grid">
-        {cardsToPlay.map((card) => renderCard(card, true))}
+      <div className="game-stats-block">
+        To Play
+        <div className="game-cards-grid">
+          {cardsToPlay.map((card) => renderCard(card, true))}
+        </div>
       </div>
-      Done
-      <div className="game-cards-grid done">
-        {cardsDone.map((card) => renderCard(card, false))}
+      <div className="game-stats-block">
+        Done
+        <div className="game-cards-grid done">
+          {cardsDone.map((card) => renderCard(card, false))}
+        </div>
       </div>
       {selectedCard && (
         <GameCardModal

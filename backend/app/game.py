@@ -227,22 +227,27 @@ async def get_game(idgame: int, external_id: str):
             ]
 
             query_game_appusers = """
-                SELECT username, CONCAT(firstname, ' ', lastname), ga.accepted,
-                ga.skips_left
+                SELECT username, CONCAT(firstname, ' ', LEFT(lastname, 1)), ga.accepted,
+                ga.skips_left,
+                (
+                    SELECT COUNT(1) FROM game_card gc
+                    WHERE gc.game = %s AND gc.performer = ga.appuser
+                )
                 FROM appuser a
                 INNER JOIN game_appuser ga ON a.idappuser = ga.appuser
                 WHERE a.deleted = FALSE AND ga.deleted = FALSE
                 AND ga.game = %s AND a.external_id != %s
             """
-            cursor.execute(query_game_appusers, (idgame, external_id))
+            cursor.execute(query_game_appusers, (idgame, idgame, external_id))
             game_appusers = cursor.fetchall()
 
             game_data += (
                 {
                     user[0]: {
-                        "name": user[1],
+                        "name": user[0],
                         "accepted": user[2],
                         "skips_left": user[3],
+                        "received_cards": user[4],
                     }
                     for user in game_appusers
                 },
