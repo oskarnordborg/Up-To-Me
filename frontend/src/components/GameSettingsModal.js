@@ -15,6 +15,7 @@ export default function GameSettingsModal({
   const [wildcards, setWildcards] = useState(0);
   const [skips, setSkips] = useState(0);
   const [selectedGameMode, setSelectedGameMode] = useState("all");
+  const [cardsPerPerson, setCardsPerPerson] = useState("all");
   const navigate = useNavigate();
 
   const fastAPIClient = new FastAPIClient();
@@ -30,6 +31,7 @@ export default function GameSettingsModal({
         participants: participants.map((item) => item.idappuser),
         wildcards: wildcards,
         skips: skips,
+        cardsperperson: cardsPerPerson,
         gamemode: selectedGameMode,
       });
       if (!response.error) {
@@ -57,6 +59,7 @@ export default function GameSettingsModal({
   };
   const handleOptionChange = (e) => {
     setSelectedGameMode(e.target.value);
+    setCardsPerPerson(Math.floor(deck.cardcount / (participants.length + 1)));
   };
 
   const gameModes = [
@@ -79,15 +82,27 @@ export default function GameSettingsModal({
         {selectedGameMode === "deal" ? (
           <p>
             Game will be started for {participants.length + 1} people, each
-            player will get{" "}
-            {Math.floor(deck.cardcount / (participants.length + 1))} randomly
-            selected cards from the deck.
+            player will get {cardsPerPerson} randomly selected cards from the
+            deck.
           </p>
         ) : (
           <p>
             Game will be started for {participants.length + 1} people, each
             player will get their set of all the {deck.cardcount} cards in the
             deck.
+          </p>
+        )}
+        <br />
+        {selectedGameMode === "deal" && (
+          <p>
+            Cards per person:
+            <input
+              type="range"
+              min="0"
+              max={Math.floor(deck.cardcount / (participants.length + 1))}
+              onChange={(e) => setCardsPerPerson(e.target.value)}
+              value={cardsPerPerson}
+            />
           </p>
         )}
         <br />

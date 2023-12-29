@@ -27,6 +27,7 @@ class CreateGameInput(BaseModel):
     participants: list[int]
     wildcards: int
     skips: int
+    cardsperperson: int = None
     gamemode: GameModeEnum
 
 
@@ -261,12 +262,12 @@ async def get_game(idgame: int, external_id: str):
         raise HTTPException(status_code=500, detail=f"Database error: {str(error)}")
 
 
-def list_batches(gamemode, lst, num_batches):
+def list_batches(gamemode, lst, num_batches, batch_size=None):
     if gamemode == GameModeEnum.all:
         return [list(lst) for _ in range(num_batches)]
     elif gamemode == GameModeEnum.deal:
         random.shuffle(lst)
-        batch_size = len(lst) // num_batches
+        batch_size = len(lst) // num_batches if not batch_size else batch_size
         batches = [
             lst[i * batch_size : (i + 1) * batch_size] for i in range(num_batches)
         ]
@@ -334,7 +335,10 @@ async def create_game(data: CreateGameInput):
             card_deck_data = cursor.fetchall()
 
             batched_cards = list_batches(
-                data.gamemode, card_deck_data, len(data.participants)
+                data.gamemode,
+                card_deck_data,
+                len(data.participants),
+                data.cardsperperson,
             )
 
             for batch in batched_cards:
