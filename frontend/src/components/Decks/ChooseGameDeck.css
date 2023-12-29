@@ -3,7 +3,7 @@
   flex-wrap: nowrap;
   overflow-x: auto;
   padding: 20px;
-  height: 160px; /* Adjust the width as needed */
+  height: 180px;
 }
 
 .game-decks-grid {
@@ -12,18 +12,18 @@
 }
 
 .game-deck-item {
-  width: 100px; /* Adjust the width as needed */
+  width: 130px;
   background-color: #ededed;
   border: 1px solid #ccc;
   border-radius: 5px;
-  padding-top: 25px;
-  padding-left: 10px;
-  padding-right: 10px;
+  padding-top: 5px;
+  padding-left: 5px;
+  padding-right: 5px;
   text-align: center;
   box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
 }
 .game-deck-item.selected {
-  background-color: lightgreen; /* Change to your preferred color */
+  background-color: lightgreen;
 }
 
 .game-deck-item h3 {
@@ -34,6 +34,7 @@
 
 .game-deck-item p {
   font-size: 12px;
+  margin: 0;
   color: #666;
 }
 

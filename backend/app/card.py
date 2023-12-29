@@ -32,13 +32,14 @@ async def get_cards(
     external_id: Optional[str] = Query(None), iddeck: Optional[int] = Query(None)
 ):
     cards: list = []
-    query = f"SELECT {', '.join(GET_CARD_FIELDS)}"
+    query = f"SELECT idcard_deck, card.title, card.description"
     params = []
 
     if external_id:
         query += ", (appuser.external_id IS NOT NULL) AS usercard, cd.wildcard "
         query += "FROM card_deck cd "
         query += "LEFT JOIN card ON card.idcard = cd.card "
+        query += "LEFT JOIN deck d ON d.iddeck = cd.deck "
         query += "LEFT JOIN appuser ON cd.appuser = appuser.idappuser "
         query += "WHERE (appuser.external_id = %s OR card.appuser IS NULL) "
         params.append(external_id)
@@ -47,6 +48,7 @@ async def get_cards(
 
     if iddeck:
         query += (" AND " if "WHERE" in query else " WHERE ") + "cd.deck = %s "
+        "AND d.hidden = FALSE "
         params.append(iddeck)
 
     query += (

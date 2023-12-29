@@ -20,7 +20,7 @@ class CreateDeckInput(BaseModel):
 
 
 @router.get("/decks/")
-async def get_decks(external_id: Optional[str] = Query(None)):
+async def get_decks(external_id: Optional[str] = Query(None), game_deck: str = False):
     decks: list = []
     try:
         with psycopg2.connect(**db_connection_params) as connection:
@@ -31,12 +31,16 @@ async def get_decks(external_id: Optional[str] = Query(None)):
                 "(SELECT COUNT(1) FROM card_deck WHERE card_deck.deck = deck.iddeck "
                 "AND card_deck.deleted = FALSE) AS cardcount "
                 "FROM deck LEFT JOIN appuser ON deck.appuser = appuser.idappuser "
+                "WHERE deck.deleted = FALSE "
             )
+            if not game_deck:
+                query += "AND deck.hidden = FALSE "
+
             if external_id:
-                query += "WHERE deck.deleted = FALSE AND appuser IS NULL OR appuser.external_id = %s"
+                query += "AND appuser IS NULL OR appuser.external_id = %s"
                 cursor.execute(query, (external_id,))
             else:
-                query += "WHERE deck.deleted = FALSE AND appuser IS NULL"
+                query += "AND appuser IS NULL"
                 cursor.execute(query)
 
             decks = cursor.fetchall()
