@@ -26,20 +26,6 @@
   color: #d9d9d9;
 }
 
-.game-settings-button {
-  position: fixed;
-  background-color: #288b21;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 5px;
-  bottom: 20px;
-  right: 20px;
-  cursor: pointer;
-  font-size: 16px;
-  z-index: -1;
-}
-
 .need-register {
   color: #d9d9d9;
 }
